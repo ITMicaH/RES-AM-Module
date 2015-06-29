@@ -115,7 +115,7 @@ function ConvertTo-PSObject
         $ht = @{}
         foreach ($Property in $Properties)
         {
-            $NewProp = $Property -replace '^(str|lng|ysn|dtm)',''
+            $NewProp = $Property -replace '^(str|lng|ysn|dtm|img)',''
             $Value = $InputObject.$Property
             If ($NewProp -eq 'Status')
             {
@@ -125,9 +125,13 @@ function ConvertTo-PSObject
                     '1' {$Value = 'Online'}
                 }
             }
-            if ($NewProp -like 'img*')
+            if ($InputObject.$Property.GetType().Name -eq 'Byte[]')
             {
-                Write-Verbose "Skipping $NewProp`."
+                Write-Verbose "Processing $NewProp`."
+                $NewValue = $Value | ?{$_ -ne 0}
+                [xml]$NewValue = [System.Text.Encoding]::ASCII.GetString($NewValue)
+                $Value = $NewValue | ConvertFrom-Xml
+
             }
             else {
                 Write-Verbose "Creating output object."
@@ -142,6 +146,33 @@ function ConvertTo-PSObject
         $Object
     }
 }
+
+function ConvertFrom-XML
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true,
+        ValueFromPipeline=$true,
+        Position=0)]
+        [xml]
+        $XMLObject
+    )
+    Process
+    {
+        Write-Verbose "Processing XML object..."
+        $ChildNodes = $XMLObject.ChildNodes | ?{$_.Name -ne 'xml'}
+        foreach ($Node in $ChildNodes)
+        {
+            Write-Verbose "Parsing node '$($Node.Name)'."
+            $Properties = $Node | Get-Member -MemberType Property
+            foreach ($Property in $Properties)
+            {
+                # Go from here
+            }
+        }
+    }
+}
+
 
 function Get-RESAMAgentTeams
 {
