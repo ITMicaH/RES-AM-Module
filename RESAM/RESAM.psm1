@@ -62,10 +62,10 @@ function Invoke-SQLQuery
         $command.CommandText = $Query
 
         Write-Verbose "Running SQL query '$query'"
-        try
-        {
+        #try
+        #{
             $result = $command.ExecuteReader()
-            $CustomTable = new-object “System.Data.DataTable”
+            $CustomTable = new-object "System.Data.DataTable"
             $CustomTable.Load($result)
             If ($Type)
             {
@@ -75,8 +75,8 @@ function Invoke-SQLQuery
             {
                 $CustomTable | ConvertTo-PSObject
             }
-        }
-        catch {}
+        #}
+        #catch {}
         try
         {
             $result.close()
@@ -127,16 +127,10 @@ function ConvertTo-PSObject
             }
             if ($InputObject.$Property.GetType().Name -eq 'Byte[]')
             {
-                Write-Verbose "Processing $NewProp`."
-                $NewValue = $Value | ?{$_ -ne 0}
-                [xml]$NewValue = [System.Text.Encoding]::ASCII.GetString($NewValue)
-                $Value = $NewValue | ConvertFrom-Xml
-
+                $Value = ConvertFrom-ByteArray $Value
             }
-            else {
-                Write-Verbose "Creating output object."
-                $ht.Add($NewProp,$Value)
-            }
+            Write-Verbose "Creating output object."
+            $ht.Add($NewProp,$Value)
         }
         $Object = New-Object -TypeName psobject -Property $ht
         If ($Type)
@@ -146,33 +140,32 @@ function ConvertTo-PSObject
         $Object
     }
 }
-
-function ConvertFrom-XML
+function ConvertFrom-ByteArray
 {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory=$true,
         ValueFromPipeline=$true,
         Position=0)]
-        [xml]
-        $XMLObject
+        [System.Byte[]]
+        $ByteArray
     )
-    Process
+    
+    Write-Verbose "Processing Byte Array..."
+    $NewArray = $ByteArray | ?{$_ -ne 0}
+    [xml]$XML = [System.Text.Encoding]::ASCII.GetString($NewArray)
+                
+    $Object = New-Object -TypeName psobject
+    $Properties = $XML | Get-Member -MemberType Property | ?{$_.Name -ne 'xml'}
+    foreach ($Property in $Properties)
     {
-        Write-Verbose "Processing XML object..."
-        $ChildNodes = $XMLObject.ChildNodes | ?{$_.Name -ne 'xml'}
-        foreach ($Node in $ChildNodes)
-        {
-            Write-Verbose "Parsing node '$($Node.Name)'."
-            $Properties = $Node | Get-Member -MemberType Property
-            foreach ($Property in $Properties)
-            {
-                # Go from here
-            }
-        }
+        $Name = $Property.Name
+        Write-Verbose "Adding property $Name to object."
+        $Object | Add-Member -MemberType NoteProperty -Name $Name -Value $XML.$Name
     }
+    $Object
+    Write-Verbose "Finished processing array."
 }
-
 
 function Get-RESAMAgentTeams
 {
@@ -208,6 +201,28 @@ function Add-RESAMFolderName
             $InputObject | Add-Member -MemberType NoteProperty -Name FolderName -Value $Folder.Name
         }
         $InputObject
+    }
+}
+
+function Optimize-RESAMAgent
+{
+    [CmdletBinding()]
+    Param (
+    [Parameter(ValueFromPipeline=$true)]
+    $Agent)
+
+    Process
+    {
+        Write-Verbose "Optimizing agent $($Agent.Name)."
+        
+        $Info = $Agent.Info | ?{$_ -ne 0}
+        [xml]$XML = [System.Text.Encoding]::ASCII.GetString($Info)
+        $Agent.Info = $XML.LAN
+        
+        $Properties = $Agent.Properties | ?{$_ -ne 0}
+        [xml]$XML = [System.Text.Encoding]::ASCII.GetString($Properties)
+        $Agent.Properties = $XML.LAN
+
     }
 }
 
@@ -434,7 +449,7 @@ function Connect-RESAMDatabase
     }
 
     Write-Verbose "Connecting to database $DatabaseName on $DataSource..."
-    $connectionString = “Server=$dataSource;uid=$($Credential.username);pwd=$($Credential.GetNetworkCredential().password);Database=$DatabaseName;Integrated Security=False;”
+    $connectionString = "Server=$dataSource;uid=$($Credential.username);pwd=$($Credential.GetNetworkCredential().password);Database=$DatabaseName;Integrated Security=False;"
     $global:RESAM_DB_Connection = New-Object System.Data.SqlClient.SqlConnection
     $RESAM_DB_Connection.ConnectionString = $connectionString
     $RESAM_DB_Connection.Open()
@@ -562,7 +577,7 @@ function Get-RESAMAgent
         {
             $Query = "select * from dbo.tblAgents"
         }
-        Invoke-SQLQuery $Query -Type Agent
+        Invoke-SQLQuery $Query -Type Agent #| Optimize-RESAMAgent
     }
 }
 
