@@ -127,11 +127,11 @@ function ConvertTo-PSObject
             }
             if ($InputObject.$Property.GetType().Name -eq 'Byte[]')
             {
-                If ($Property -eq 'imgWho')
-                {
-                    $NewProp = 'WhoGUID'
-                }
                 $Value = ConvertFrom-ByteArray $Value
+            }
+            If ($Property -eq 'imgWho')
+            {
+                $NewProp = 'WhoGUID'
             }
             Write-Verbose "Creating output object."
             $ht.Add($NewProp,$Value)
