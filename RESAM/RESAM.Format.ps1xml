@@ -6,7 +6,7 @@
     <ViewSelectedBy>
       <TypeName>RES.AutomationManager.Agent</TypeName>
     </ViewSelectedBy>
-    <ListControl>
+	<ListControl>
       <ListEntries>
         <ListEntry>
           <ListItems>
@@ -22,17 +22,21 @@
             <ListItem>
               <PropertyName>OSServicePack</PropertyName>
             </ListItem>
-	    <ListItem>
-	      <Label>FreeSpace(GB)</Label>
-	      <ScriptBlock>($_.FreeSpaceProgramFiles / 1MB).ToString("#.##")</ScriptBlock>
+			<ListItem>
+			  <Label>FreeSpace(GB)</Label>
+			  <ScriptBlock>($_.FreeSpaceProgramFiles / 1MB).ToString("#.##")</ScriptBlock>
             </ListItem>
-	    <ListItem>
-	      <Label>PrimaryTeam</Label>
-	      <ScriptBlock>($_.PrimaryTeamGUID | Get-RESAMTeam).Name</ScriptBlock>
+			<ListItem>
+			  <Label>MACAddress</Label>
+			  <ScriptBlock>$_.Info.LAN.Adapter.MAC</ScriptBlock>
             </ListItem>
-	    <ListItem>
-	      <Label>MemberOf</Label>
-	      <ScriptBlock>($_ | Get-RESAMAgentTeams).Name</ScriptBlock>
+			<ListItem>
+			  <Label>PrimaryTeam</Label>
+			  <ScriptBlock>($_.PrimaryTeamGUID | Get-RESAMTeam).Name</ScriptBlock>
+            </ListItem>
+			<ListItem>
+			  <Label>Teams</Label>
+			  <ScriptBlock>($_ | Get-RESAMTeam).Name</ScriptBlock>
             </ListItem>
           </ListItems>
         </ListEntry>
@@ -86,7 +90,7 @@
             <ListItem>
               <PropertyName>Description</PropertyName>
             </ListItem>
-	    <ListItem>
+			<ListItem>
               <PropertyName>FolderName</PropertyName>
             </ListItem>
           </ListItems>
@@ -115,10 +119,10 @@
             <ListItem>
               <PropertyName>Description</PropertyName>
             </ListItem>
-	    <ListItem>
+			<ListItem>
               <PropertyName>WOL</PropertyName>
             </ListItem>
-	    <ListItem>
+			<ListItem>
               <PropertyName>Status</PropertyName>
             </ListItem>
           </ListItems>
@@ -138,16 +142,16 @@
             <ListItem>
               <PropertyName>Agent</PropertyName>
             </ListItem>
-	    <ListItem>
+			<ListItem>
               <PropertyName>DateTime</PropertyName>
             </ListItem>
             <ListItem>
               <Label>QueryObject</Label>
-	      <ScriptBlock>$_.Var</ScriptBlock>
+			  <ScriptBlock>$_.Var</ScriptBlock>
             </ListItem>
             <ListItem>
               <Label>Result</Label>
-	      <ScriptBlock>$_.Val</ScriptBlock>
+			  <ScriptBlock>$_.Val</ScriptBlock>
             </ListItem>
           </ListItems>
         </ListEntry>
