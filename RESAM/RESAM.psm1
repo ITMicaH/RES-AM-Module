@@ -127,6 +127,10 @@ function ConvertTo-PSObject
             }
             if ($InputObject.$Property.GetType().Name -eq 'Byte[]')
             {
+                If ($Property -eq 'imgWho')
+                {
+                    $NewProp = 'WhoGUID'
+                }
                 $Value = ConvertFrom-ByteArray $Value
             }
             Write-Verbose "Creating output object."
@@ -153,15 +157,30 @@ function ConvertFrom-ByteArray
     
     Write-Verbose "Processing Byte Array..."
     $NewArray = $ByteArray | ?{$_ -ne 0}
-    [xml]$XML = [System.Text.Encoding]::ASCII.GetString($NewArray)
-                
-    $Object = New-Object -TypeName psobject
-    $Properties = $XML | Get-Member -MemberType Property | ?{$_.Name -ne 'xml'}
-    foreach ($Property in $Properties)
-    {
-        $Name = $Property.Name
-        Write-Verbose "Adding property $Name to object."
-        $Object | Add-Member -MemberType NoteProperty -Name $Name -Value $XML.$Name
+    $Text = [System.Text.Encoding]::ASCII.GetString($NewArray)
+    Try {
+        [xml]$XML = $Text
+        $Object = New-Object -TypeName psobject
+        $Properties = $XML | Get-Member -MemberType Property | ?{$_.Name -ne 'xml'}
+        foreach ($Property in $Properties)
+        {
+            $Name = $Property.Name
+            Write-Verbose "Adding property $Name to object."
+            $Object | Add-Member -MemberType NoteProperty -Name $Name -Value $XML.$Name
+        }
+    }
+    Catch {
+        Write-Verbose "Not able to convert array to XML object."
+        $Object = Try{
+            Write-Verbose "Attempting to cast object as GUID."
+            $Text -as [guid]
+            Write-Verbose "Object is indeed a GUID."
+        }
+        catch {
+            Write-Verbose "Object is not a GUID."
+            Write-Verbose "Casting object as a string value."
+            $Text
+        }
     }
     $Object
     Write-Verbose "Finished processing array."
@@ -249,8 +268,8 @@ function Optimize-RESAMFolder
         {
             $Query = "select * from dbo.tblFolders WHERE FolderGUID = '$($Folder.ParentFolderGUID.tostring())'"
             $ParentFolder = Invoke-SQLQuery $Query
+            $Folder | Add-Member -MemberType NoteProperty -Name ParentFolderName -Value $ParentFolder.Name.trim()
         }
-        $Folder | Add-Member -MemberType NoteProperty -Name ParentFolderName -Value $ParentFolder.Name.trim()
         $Folder
     }
 }
@@ -323,6 +342,13 @@ function Optimize-RESAMConnector
                     0 {$Connector.Type = ''}
                 }
               }
+            7 { 
+                $Connector | Add-Member -MemberType NoteProperty -Name ConnectorFor -Value 'Web Service Hosts'
+                switch ($Connector.Flags)
+                {
+                    0 {$Connector.Type = 'Web Service'}
+                }
+              }
         }
 
         $Connector
@@ -351,6 +377,7 @@ function Optimize-RESAMJob
     )
     process
     {
+        Write-Verbose "Processing Job Invoker..."
         switch ($InputObject.JobInvoker)
         {
             1  {
@@ -365,6 +392,9 @@ function Optimize-RESAMJob
             8  {$InputObject.JobInvokerInfo = 'Boot'}
             9  {$InputObject.JobInvokerInfo = 'Project/Runbook'}
         }
+        Write-Verbose "Job Invoker is '$($InputObject.JobInvokerInfo)'."
+
+        Write-Verbose "Processing status..."
         switch ($InputObject.Status)
         {
             -1        {$InputObject.Status = 'On Hold'}
@@ -379,6 +409,7 @@ function Optimize-RESAMJob
             8         {$InputObject.Status = 'Completed with Errors'}
             9         {$InputObject.Status = 'Skipped'}
         }
+        Write-Verbose "Status is '$($InputObject.Status)'"
         Write-Verbose "Converting dates to local time."
         $InputObject.StartDateTime = ConvertTo-LocalTime $InputObject.StartDateTime
         $InputObject.StopDateTime = ConvertTo-LocalTime $InputObject.StopDateTime
@@ -532,6 +563,7 @@ function Get-RESAMAgent
         $Name,
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
+        [Alias('Who')]
         [Alias('WUIDAgent')]
         [Alias('AgentGUID')]
         [guid]
