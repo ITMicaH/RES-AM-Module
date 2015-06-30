@@ -18,7 +18,7 @@
               <Name>OSName</Name>
               <Name>OSServicePack</Name>
               <Name>PrimaryTeam</Name>
-              <Name>MemberOf</Name>
+              <Name>Teams</Name>
             </ReferencedProperties>
           </PropertySet>
           <PropertySet>
@@ -30,11 +30,15 @@
         </Members>
       </MemberSet>
 	  <ScriptProperty>
+		<Name>MACAddress</Name>
+		<GetScriptBlock>$this.Info.LAN.Adapter.MAC</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
 		<Name>PrimaryTeam</Name>
 		<GetScriptBlock>$this.PrimaryTeamGUID | Get-RESAMTeam</GetScriptBlock>
 	  </ScriptProperty>
 	  <ScriptProperty>
-		<Name>MemberOf</Name>
+		<Name>Teams</Name>
 		<GetScriptBlock>$this | Get-RESAMAgentTeams</GetScriptBlock>
 	  </ScriptProperty>
     </Members>
@@ -66,6 +70,10 @@
           </PropertySet>
         </Members>
       </MemberSet>
+	  <ScriptProperty>
+		<Name>TeamGUID</Name>
+		<GetScriptBlock>$this.GUID</GetScriptBlock>
+	  </ScriptProperty>
     </Members>
   </Type>
   <Type>
