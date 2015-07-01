@@ -31,15 +31,27 @@
       </MemberSet>
 	  <ScriptProperty>
 		<Name>MACAddress</Name>
-		<GetScriptBlock>$this.Info.LAN.Adapter.MAC</GetScriptBlock>
+		<GetScriptBlock>If ($this.Info.LAN.Adapter.MAC)
+			{
+				$this.Info.LAN.Adapter.MAC
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
 	  </ScriptProperty>
 	  <ScriptProperty>
-		<Name>PrimaryTeam</Name>
-		<GetScriptBlock>$this.PrimaryTeamGUID | Get-RESAMTeam</GetScriptBlock>
-	  </ScriptProperty>
-	  <ScriptProperty>
-		<Name>Teams</Name>
-		<GetScriptBlock>$this | Get-RESAMAgentTeams</GetScriptBlock>
+		<Name>IPAddress</Name>
+		<GetScriptBlock>If ($this.Info.LAN.Adapter.IP)
+			{
+				$this.Info.LAN.Adapter.IP
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
 	  </ScriptProperty>
     </Members>
   </Type>
