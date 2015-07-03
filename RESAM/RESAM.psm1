@@ -563,14 +563,25 @@ function Disconnect-RESAMDatabase
 .PARAMETER GUID
     GUID of the Agent.
 .PARAMETER Team
-    Team object or guid of the team the agent should be member of
+    Team object or guid of the team the agent should be member of.
+.PARAMETER Full
+    Retreive full information (adapter information etc.).
+.PARAMETER HasDuplicates
+    List agents that have duplicates.
 .EXAMPLE
-    Get-RESAMAgent -Name PC1234
-    Displays information on RES Automation Manager agent PC1234
+    Get-RESAMAgent -Name PC1234 -Full
+    Displays full information on RES Automation Manager agent PC1234.
 .EXAMPLE
     Get-RESAMTeam -Name Team1 | Get-RESAMAgent
-    Displays information on RES Automation Manager agent that are member
+    Displays default information on RES Automation Manager agent that are member
     of team 'Team1'
+.EXAMPLE
+    Get-RESAMAgent -HasDuplicates
+    Displays a list of agent names that have duplicate agent objects in the
+    database.
+.EXAMPLE
+    Get-RESAMAgent -HasDuplicates | Get-RESAMAgent -Full
+    Displays all agent objects that have duplicates in the database.
 .NOTES
     Author        : Michaja van der Zouwen
     Version       : 1.0
@@ -580,13 +591,15 @@ function Disconnect-RESAMDatabase
 #>
 function Get-RESAMAgent
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Default')]
     param (
         [Parameter(ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Default',
                    Position = 0)]
         [string]
         $Name,
         [Parameter(ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Default',
                    Position = 1)]
         [Alias('Who')]
         [Alias('WUIDAgent')]
@@ -595,6 +608,7 @@ function Get-RESAMAgent
         $GUID,
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Default',
                    Position = 2)]
         [Alias('TeamGUID')]
         [ValidateScript({
@@ -610,12 +624,27 @@ function Get-RESAMAgent
         })]
         $Team,
 
+        [Parameter(ParameterSetName='Default')]
         [switch]
-        $Full = $false
+        $Full = $false,
+
+        [Parameter(ParameterSetName='Duplicates')]
+        [switch]
+        $HasDuplicates
     )
 
     process
     {
+        if ($HasDuplicates)
+        {
+            Write-Verbose "Checking agent for duplicates."
+            $Query = "SELECT strName, COUNT(strName) AS #Duplicates
+                      FROM dbo.tblAgents
+                      group by strName
+                      having COUNT(strName) > 1"
+            Invoke-SQLQuery $Query -Type Duplicate
+            return
+        }
         if ($Team)
         {
             $Query = "select * from dbo.tblTeamAgents WHERE TeamGUID = '$($Team.GUID)'"
