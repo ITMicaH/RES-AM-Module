@@ -81,6 +81,7 @@ FunctionsToExport = @(
     'Get-RESAMConnector'
     'Get-RESAMDatabaseLevel'
     'Get-RESAMConsole'
+    'Get-RESAMMasterJob'
     'Get-RESAMJob'
     'Get-RESAMQueryResult'
 )
