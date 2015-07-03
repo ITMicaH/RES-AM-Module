@@ -168,5 +168,34 @@
       </ListEntries>
     </ListControl>
   </View>
+  <View>
+    <Name>RES.AutomationManager.Duplicate</Name>
+    <ViewSelectedBy>
+      <TypeName>RES.AutomationManager.Duplicate</TypeName>
+    </ViewSelectedBy>
+    <TableControl>
+      <AutoSize/>
+      <TableHeaders>
+        <TableColumnHeader>
+          <Label>Name</Label>
+        </TableColumnHeader>
+        <TableColumnHeader>
+          <Label>#Duplicates</Label>
+        </TableColumnHeader>
+      </TableHeaders>
+      <TableRowEntries>
+        <TableRowEntry>
+          <TableColumnItems>
+            <TableColumnItem>
+              <PropertyName>Name</PropertyName>
+            </TableColumnItem>
+            <TableColumnItem>
+              <PropertyName>#Duplicates</PropertyName>
+            </TableColumnItem>
+          </TableColumnItems>
+        </TableRowEntry>
+      </TableRowEntries>
+    </TableControl>
+  </View>
 </ViewDefinitions>
 </Configuration>
