@@ -18,7 +18,7 @@
               <Name>OSName</Name>
               <Name>OSServicePack</Name>
               <Name>PrimaryTeam</Name>
-              <Name>MemberOf</Name>
+              <Name>Teams</Name>
             </ReferencedProperties>
           </PropertySet>
           <PropertySet>
@@ -30,12 +30,28 @@
         </Members>
       </MemberSet>
 	  <ScriptProperty>
-		<Name>PrimaryTeam</Name>
-		<GetScriptBlock>$this.PrimaryTeamGUID | Get-RESAMTeam</GetScriptBlock>
+		<Name>MACAddress</Name>
+		<GetScriptBlock>If ($this.Info.LAN.Adapter.MAC)
+			{
+				$this.Info.LAN.Adapter.MAC
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
 	  </ScriptProperty>
 	  <ScriptProperty>
-		<Name>MemberOf</Name>
-		<GetScriptBlock>$this | Get-RESAMAgentTeams</GetScriptBlock>
+		<Name>IPAddress</Name>
+		<GetScriptBlock>If ($this.Info.LAN.Adapter.IP)
+			{
+				$this.Info.LAN.Adapter.IP
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
 	  </ScriptProperty>
     </Members>
   </Type>
@@ -66,6 +82,10 @@
           </PropertySet>
         </Members>
       </MemberSet>
+	  <ScriptProperty>
+		<Name>TeamGUID</Name>
+		<GetScriptBlock>$this.GUID</GetScriptBlock>
+	  </ScriptProperty>
     </Members>
   </Type>
   <Type>
@@ -137,6 +157,33 @@
 		<Name>Result</Name>
 		<GetScriptBlock>$this.val</GetScriptBlock>
 	  </ScriptProperty>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.Duplicate</Name>
+    <Members>
+      <MemberSet>
+        <Name>PsStandardMembers</Name>
+        <Members>
+          <NoteProperty>
+            <Name>DefaultDisplayProperty</Name>
+            <Value>Name</Value>
+          </NoteProperty>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+              <Name>#Duplicates</Name>
+            </ReferencedProperties>
+          </PropertySet>
+          <PropertySet>
+            <Name>DefaultKeyPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
     </Members>
   </Type>
 </Types>

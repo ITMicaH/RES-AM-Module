@@ -1,35 +1,6 @@
 
 #region HelperFunctions
 
-function Search-SQLDatabase
-{
-    Param (
-        $SearchValue
-    )
-    $Query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_CATALOG='$($RESAM_DB_Connection.DataBase)'"
-    $AllTables = Invoke-SQLQuery -Query $Query
-    If (!$AllTables)
-    {
-        throw "Unable to retreive tables from '$($RESAM_DB_Connection.DataBase)'."
-    }
-    foreach ($Table in $AllTables.TABLE_NAME)
-    {
-        $Columns = Invoke-SQLQuery -Query "select * from INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = N'$Table'"
-        foreach ($Column in $Columns.COLUMN_NAME)
-        {
-            $result = Invoke-SQLQuery -Query "select * from dbo.$Table WHERE $Column LIKE '$($SearchValue.replace('*','%'))'"
-            If ($result)
-            {
-                New-Object -TypeName psobject -Property @{
-                    'TableName' = $Table
-                    'Column' = $Column
-                    'Row' = $result
-                }
-            } # end IF
-        } # end foreach Column
-    } # end foreach Table
-}
-
 function Invoke-SQLQuery
 {
     [CmdletBinding()]
@@ -46,7 +17,10 @@ function Invoke-SQLQuery
                    ValueFromPipeline = $false,
                    Position=1)]
         [string]
-        $Type
+        $Type,
+
+        [bool]
+        $Full = $true
     )
 
     Begin
@@ -62,29 +36,28 @@ function Invoke-SQLQuery
         $command.CommandText = $Query
 
         Write-Verbose "Running SQL query '$query'"
-        try
-        {
-            $result = $command.ExecuteReader()
-            $CustomTable = new-object “System.Data.DataTable”
+        $result = $command.ExecuteReader()
+        $CustomTable = new-object "System.Data.DataTable"
+        try{
             $CustomTable.Load($result)
-            If ($Type)
-            {
-                $CustomTable | ConvertTo-PSObject -Type $Type
-            }
-            else
-            {
-                $CustomTable | ConvertTo-PSObject
-            }
         }
-        catch {}
-        try
+        catch{
+            $_
+        }
+        If ($Type)
         {
-            $result.close()
+            $CustomTable | ConvertTo-PSObject -Type $Type -Full:$Full
         }
-        catch{}
+        else
+        {
+            $CustomTable | ConvertTo-PSObject -Full:$Full
+        }
+
+        $result.close()
     }
     End
     {
+        Write-Verbose "Finished running SQL query."
     }
 }
 
@@ -104,7 +77,11 @@ function ConvertTo-PSObject
                    ValueFromPipeline = $false,
                    Position=1)]
         [string]
-        $Type
+        $Type,
+
+        [bool]
+        $Full = $true
+
     )
 
     Process
@@ -115,7 +92,7 @@ function ConvertTo-PSObject
         $ht = @{}
         foreach ($Property in $Properties)
         {
-            $NewProp = $Property -replace '^(str|lng|ysn|dtm)',''
+            $NewProp = $Property -replace '^(str|lng|ysn|dtm|img)',''
             $Value = $InputObject.$Property
             If ($NewProp -eq 'Status')
             {
@@ -125,14 +102,23 @@ function ConvertTo-PSObject
                     '1' {$Value = 'Online'}
                 }
             }
-            if ($NewProp -like 'img*')
+            if ($InputObject.$Property.GetType().Name -eq 'Byte[]')
             {
-                Write-Verbose "Skipping $NewProp`."
+                If ($Full)
+                {
+                    $Value = ConvertFrom-ByteArray $Value
+                }
+                else
+                {
+                    $Value = "<Use '-Full' parameter for details>"
+                }
             }
-            else {
-                Write-Verbose "Creating output object."
-                $ht.Add($NewProp,$Value)
+            If ($Property -eq 'imgWho')
+            {
+                $NewProp = 'WhoGUID'
             }
+            Write-Verbose "Creating output object."
+            $ht.Add($NewProp,$Value)
         }
         $Object = New-Object -TypeName psobject -Property $ht
         If ($Type)
@@ -143,7 +129,49 @@ function ConvertTo-PSObject
     }
 }
 
-function Get-RESAMAgentTeams
+function ConvertFrom-ByteArray
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true,
+        ValueFromPipeline=$true,
+        Position=0)]
+        [System.Byte[]]
+        $ByteArray
+    )
+    
+    Write-Verbose "Processing Byte Array..."
+    $NewArray = $ByteArray | ?{$_ -ne 0}
+    $Text = [System.Text.Encoding]::ASCII.GetString($NewArray)
+    Try {
+        [xml]$XML = $Text
+        $Object = New-Object -TypeName psobject
+        $Properties = $XML | Get-Member -MemberType Property | ?{$_.Name -ne 'xml'}
+        foreach ($Property in $Properties)
+        {
+            $Name = $Property.Name
+            Write-Verbose "Adding property $Name to object."
+            $Object | Add-Member -MemberType NoteProperty -Name $Name -Value $XML.$Name
+        }
+    }
+    Catch {
+        Write-Verbose "Not able to convert array to XML object."
+        $Object = Try{
+            Write-Verbose "Attempting to cast object as GUID."
+            $Text -as [guid]
+            Write-Verbose "Object is indeed a GUID."
+        }
+        catch {
+            Write-Verbose "Object is not a GUID."
+            Write-Verbose "Casting object as a string value."
+            $Text
+        }
+    }
+    $Object
+    Write-Verbose "Finished processing array."
+}
+
+<#function Get-RESAMAgentTeams
 {
     [CmdletBinding()]
     param (
@@ -159,7 +187,7 @@ function Get-RESAMAgentTeams
 
         Invoke-SQLQuery $Query | Get-RESAMTeam
     }
-}
+}#>
 
 function Add-RESAMFolderName
 {
@@ -177,6 +205,63 @@ function Add-RESAMFolderName
             $InputObject | Add-Member -MemberType NoteProperty -Name FolderName -Value $Folder.Name
         }
         $InputObject
+    }
+}
+
+function Optimize-RESAMAgent
+{
+    [CmdletBinding()]
+    Param (
+    [Parameter(ValueFromPipeline=$true)]
+    [ValidateScript({
+            If ($_.PSObject.TypeNames -contains 'RES.AutomationManager.Agent' -or
+             $_ -is [guid])
+             {
+                $true
+             }
+             else
+             {
+                throw "Object type should be 'RES.AutomationManager.Agent'."
+             }
+        })]
+    $Agent
+    )
+
+    Process
+    {
+        Write-Verbose "Optimizing agent $($Agent.Name)."
+        
+        If ($Agent.PrimaryTeamGUID)
+        {
+            Write-Verbose "Adding PrimaryTeam member."
+            $Query = "select strName from dbo.tblTeams WHERE GUID = '$($Agent.PrimaryTeamGUID)'"
+            $PrimaryTeam = Invoke-SQLQuery $Query
+            $Agent | Add-Member -MemberType NoteProperty -Name PrimaryTeam -Value $PrimaryTeam.Name
+        }
+
+        Write-Verbose "Adding Teams member."
+        $Query = "select TeamGUID from dbo.tblTeamAgents WHERE AgentGUID = '$($Agent.WUIDAgent)'"
+        $Teams = Invoke-SQLQuery $Query | %{
+            $Query = "select strName from dbo.tblTeams WHERE GUID = '$($_.TeamGUID)'"
+            Invoke-SQLQuery $Query
+        }
+        $Agent | Add-Member -MemberType NoteProperty -Name Teams -Value $Teams.Name
+
+        Write-Verbose "Checking agent for duplicates."
+        $Query = "SELECT strName, COUNT(strName) AS #Duplicates
+                  FROM dbo.tblAgents
+                  group by strName
+                  having COUNT(strName) > 1"
+        $Duplicates = Invoke-SQLQuery $Query
+        If ($Duplicates.Name -contains $Agent.Name)
+        {
+            $Agent | Add-Member -MemberType NoteProperty -Name HasDuplicates -Value $True
+        }
+        else
+        {
+            $Agent | Add-Member -MemberType NoteProperty -Name HasDuplicates -Value $False
+        }
+        $Agent
     }
 }
 
@@ -203,8 +288,8 @@ function Optimize-RESAMFolder
         {
             $Query = "select * from dbo.tblFolders WHERE FolderGUID = '$($Folder.ParentFolderGUID.tostring())'"
             $ParentFolder = Invoke-SQLQuery $Query
+            $Folder | Add-Member -MemberType NoteProperty -Name ParentFolderName -Value $ParentFolder.Name.trim()
         }
-        $Folder | Add-Member -MemberType NoteProperty -Name ParentFolderName -Value $ParentFolder.Name.trim()
         $Folder
     }
 }
@@ -277,6 +362,13 @@ function Optimize-RESAMConnector
                     0 {$Connector.Type = ''}
                 }
               }
+            7 { 
+                $Connector | Add-Member -MemberType NoteProperty -Name ConnectorFor -Value 'Web Service Hosts'
+                switch ($Connector.Flags)
+                {
+                    0 {$Connector.Type = 'Web Service'}
+                }
+              }
         }
 
         $Connector
@@ -305,6 +397,7 @@ function Optimize-RESAMJob
     )
     process
     {
+        Write-Verbose "Processing Job Invoker..."
         switch ($InputObject.JobInvoker)
         {
             1  {
@@ -319,6 +412,9 @@ function Optimize-RESAMJob
             8  {$InputObject.JobInvokerInfo = 'Boot'}
             9  {$InputObject.JobInvokerInfo = 'Project/Runbook'}
         }
+        Write-Verbose "Job Invoker is '$($InputObject.JobInvokerInfo)'."
+
+        Write-Verbose "Processing status..."
         switch ($InputObject.Status)
         {
             -1        {$InputObject.Status = 'On Hold'}
@@ -333,6 +429,7 @@ function Optimize-RESAMJob
             8         {$InputObject.Status = 'Completed with Errors'}
             9         {$InputObject.Status = 'Skipped'}
         }
+        Write-Verbose "Status is '$($InputObject.Status)'"
         Write-Verbose "Converting dates to local time."
         $InputObject.StartDateTime = ConvertTo-LocalTime $InputObject.StartDateTime
         $InputObject.StopDateTime = ConvertTo-LocalTime $InputObject.StopDateTime
@@ -399,11 +496,16 @@ function Connect-RESAMDatabase
 
     If ($Credential) {
         Write-Verbose "Processing credentials."
-        $Credential = Get-Credential $Credential -Message "Please enter credentials to connect to database '$DatabaseName'"
+        $Message = "Please enter credentials to connect to database '$DatabaseName'."
+        switch ($Credential.GetType().Name)
+        {
+            'PSCredential' {}
+            'String' {$Credential = Get-Credential $Credential -Message $Message}
+        }
     }
 
     Write-Verbose "Connecting to database $DatabaseName on $DataSource..."
-    $connectionString = “Server=$dataSource;uid=$($Credential.username);pwd=$($Credential.GetNetworkCredential().password);Database=$DatabaseName;Integrated Security=False;”
+    $connectionString = "Server=$dataSource;uid=$($Credential.username);pwd=$($Credential.GetNetworkCredential().password);Database=$DatabaseName;Integrated Security=False;"
     $global:RESAM_DB_Connection = New-Object System.Data.SqlClient.SqlConnection
     $RESAM_DB_Connection.ConnectionString = $connectionString
     $RESAM_DB_Connection.Open()
@@ -461,14 +563,25 @@ function Disconnect-RESAMDatabase
 .PARAMETER GUID
     GUID of the Agent.
 .PARAMETER Team
-    Team object or guid of the team the agent should be member of
+    Team object or guid of the team the agent should be member of.
+.PARAMETER Full
+    Retreive full information (adapter information etc.).
+.PARAMETER HasDuplicates
+    List agents that have duplicates.
 .EXAMPLE
-    Get-RESAMAgent -Name PC1234
-    Displays information on RES Automation Manager agent PC1234
+    Get-RESAMAgent -Name PC1234 -Full
+    Displays full information on RES Automation Manager agent PC1234.
 .EXAMPLE
     Get-RESAMTeam -Name Team1 | Get-RESAMAgent
-    Displays information on RES Automation Manager agent that are member
+    Displays default information on RES Automation Manager agent that are member
     of team 'Team1'
+.EXAMPLE
+    Get-RESAMAgent -HasDuplicates
+    Displays a list of agent names that have duplicate agent objects in the
+    database.
+.EXAMPLE
+    Get-RESAMAgent -HasDuplicates | Get-RESAMAgent -Full
+    Displays all agent objects that have duplicates in the database.
 .NOTES
     Author        : Michaja van der Zouwen
     Version       : 1.0
@@ -478,20 +591,24 @@ function Disconnect-RESAMDatabase
 #>
 function Get-RESAMAgent
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Default')]
     param (
         [Parameter(ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Default',
                    Position = 0)]
         [string]
         $Name,
         [Parameter(ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Default',
                    Position = 1)]
+        [Alias('Who')]
         [Alias('WUIDAgent')]
         [Alias('AgentGUID')]
         [guid]
         $GUID,
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Default',
                    Position = 2)]
         [Alias('TeamGUID')]
         [ValidateScript({
@@ -505,11 +622,29 @@ function Get-RESAMAgent
                 throw "Object type should be 'RES.AutomationManager.Team'."
              }
         })]
-        $Team
+        $Team,
+
+        [Parameter(ParameterSetName='Default')]
+        [switch]
+        $Full = $false,
+
+        [Parameter(ParameterSetName='Duplicates')]
+        [switch]
+        $HasDuplicates
     )
 
     process
     {
+        if ($HasDuplicates)
+        {
+            Write-Verbose "Checking agent for duplicates."
+            $Query = "SELECT strName, COUNT(strName) AS #Duplicates
+                      FROM dbo.tblAgents
+                      group by strName
+                      having COUNT(strName) > 1"
+            Invoke-SQLQuery $Query -Type Duplicate
+            return
+        }
         if ($Team)
         {
             $Query = "select * from dbo.tblTeamAgents WHERE TeamGUID = '$($Team.GUID)'"
@@ -531,7 +666,7 @@ function Get-RESAMAgent
         {
             $Query = "select * from dbo.tblAgents"
         }
-        Invoke-SQLQuery $Query -Type Agent
+        Invoke-SQLQuery $Query -Type Agent -Full:$Full | Optimize-RESAMAgent
     }
 }
 
@@ -1050,7 +1185,7 @@ function Get-RESAMDatabaseLevel
     }
 }
 
-function Get-RESAMJob
+function Get-RESAMMasterJob
 {
     [CmdletBinding()]
     param (
@@ -1085,7 +1220,10 @@ function Get-RESAMJob
         $Active,
 
         [int]
-        $Last
+        $Last,
+
+        [switch]
+        $Full = $false
     )
     begin
     {
@@ -1113,7 +1251,7 @@ function Get-RESAMJob
         }
         else
         {
-            $Filter += "(lngJobInvoker = 1 OR lngJobInvoker = 5)"
+            $Filter += "lngJobInvoker <> 9"
         }
         If ($GUID -and !$ModuleGUID)
         {
@@ -1146,7 +1284,192 @@ function Get-RESAMJob
         }
 
         $Query = "$Query order by dtmStartDateTime DESC"
-        Invoke-SQLQuery $Query -Type Job | Optimize-RESAMJob
+        Invoke-SQLQuery $Query -Type MasterJob -Full:$Full | Optimize-RESAMJob
+    }
+}
+
+function Get-RESAMJobTask
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 0)]
+        [Alias('strDescription')]
+        [string]
+        $Description,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 1)]
+        [Alias('MasterJobGUID')]
+        [guid]
+        $GUID,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 2)]
+        [Alias('Agent')]
+        [Alias('Team')]
+        [string]
+        $Who,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 3)]
+        [guid]
+        $ModuleGUID,
+        
+        [switch]
+        $Scheduled,
+
+        [switch]
+        $Active,
+
+        [switch]
+        $IncludeChildJobs,
+
+        [int]
+        $Last,
+
+        [switch]
+        $Full = $false
+    )
+    begin
+    {
+        If ($Last)
+        {
+            $LastNr = "TOP $Last"
+        }
+        else
+        {
+            $LastNr = "TOP 1000"
+            Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
+        }
+    }
+    process
+    {
+        $Filter = @()
+        If ($Scheduled)
+        {
+            $Filter += "(lngStatus = 0 OR lngStatus = -1)"
+            $Filter += "RecurringJobGUID IS NULL"
+        }
+        If ($ModuleGUID)
+        {
+            $Filter += "ModuleGUID = '$ModuleGUID'"
+        }
+        IF (!$IncludeChildJobs)
+        {
+            $Filter += "lngJobInvoker <> 9"
+        }
+        If ($GUID -and !$ModuleGUID)
+        {
+            Write-Verbose "Running query based on GUID $GUID."
+            $Filter += "MasterJobGUID = '$($GUID.tostring())'"
+        }
+        Elseif ($Description -and !$ModuleGUID)
+        {
+            Write-Verbose "Running query based on description '$Description'."
+            $Filter += "strDescription LIKE '$($Description.replace('*','%'))'"
+        }
+        If ($Who)
+        {
+            If ($Who -notmatch '\*')
+            {
+                $Who = "*$Who*" #Jobs can have multiple agents
+            }
+            $Filter += "strWho LIKE '$($Who.Replace('*','%'))'"
+        }
+        If ($Active)
+        {
+            $Filter += "lngStatus = 1"
+        }
+
+        $Query = "select $LastNr * from dbo.tblMasterJob"
+        If ($Filter)
+        {
+            $Filter = $Filter -join ' AND '
+            $Query = "$Query WHERE $Filter"
+        }
+
+        $Query = "$Query order by dtmStartDateTime DESC"
+        Invoke-SQLQuery $Query -Type Job -Full:$Full | Optimize-RESAMJob
+    }
+}
+
+function Get-RESAMJob
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 0)]
+        [Alias('WUIDAgent')]
+        [Alias('AgentGUID')]
+        [guid]
+        $Agent,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 1)]
+        [guid]
+        $MasterJobGUID,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 3)]
+        [guid]
+        $JobGUID,
+        
+        [switch]
+        $Scheduled,
+
+        [switch]
+        $Active,
+
+        [int]
+        $Last,
+
+        [switch]
+        $Full = $false
+    )
+    begin
+    {
+        If ($Last)
+        {
+            $LastNr = "TOP $Last"
+        }
+        else
+        {
+            $LastNr = "TOP 1000"
+            Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
+        }
+    }
+    process
+    {
+        $Filter = @()
+        If ($Scheduled)
+        {
+            $Filter += "(lngStatus = 0 OR lngStatus = -1)"
+            $Filter += "RecurringJobGUID IS NULL"
+        }
+        If ($JobGUID)
+        {
+            $Filter += "JobGUID = '$JobGUID'"
+        }
+        If ($MasterJobGUID)
+        {
+            Write-Verbose "Running query based on MasterJobGUID $MasterJobGUID."
+            $Filter += "MasterJobGUID = '$MasterJobGUID'"
+        }
+        If ($Active)
+        {
+            $Filter += "lngStatus = 1"
+        }
+
+        $Query = "select $LastNr * from dbo.tblJobs"
+        If ($Filter)
+        {
+            $Filter = $Filter -join ' AND '
+            $Query = "$Query WHERE $Filter"
+        }
+
+        $Query = "$Query order by dtmStartDateTime DESC"
+        Invoke-SQLQuery $Query -Type Job -Full:$Full | Optimize-RESAMJob
     }
 }
 
