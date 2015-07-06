@@ -500,7 +500,7 @@ function Connect-RESAMDatabase
         switch ($Credential.GetType().Name)
         {
             'PSCredential' {}
-            'String' {Get-Credential $Credential -Message $Message}
+            'String' {$Credential = Get-Credential $Credential -Message $Message}
         }
     }
 
