@@ -1,6 +1,7 @@
 
 #region HelperFunctions
 
+# Invokes a query on the RES AM Database.
 function Invoke-SQLQuery
 {
     [CmdletBinding()]
@@ -46,11 +47,11 @@ function Invoke-SQLQuery
         }
         If ($Type)
         {
-            $CustomTable | ConvertTo-PSObject -Type $Type -Full:$Full
+            $CustomTable | ConvertTo-RESAMObject -Type $Type -Full:$Full
         }
         else
         {
-            $CustomTable | ConvertTo-PSObject -Full:$Full
+            $CustomTable | ConvertTo-RESAMObject -Full:$Full
         }
 
         $result.close()
@@ -61,7 +62,8 @@ function Invoke-SQLQuery
     }
 }
 
-function ConvertTo-PSObject
+# Converts a SQL query result object to a RES AM object.
+function ConvertTo-RESAMObject
 {
     [CmdletBinding()]
     [OutputType([int])]
@@ -110,12 +112,16 @@ function ConvertTo-PSObject
                 }
                 else
                 {
-                    $Value = "<Use '-Full' parameter for details>"
+                    $Value = "Use '-Full' parameter for details"
                 }
             }
             If ($Property -eq 'imgWho')
             {
                 $NewProp = 'WhoGUID'
+            }
+            If ($InputObject.$Property -is [datetime])
+            {
+                $Value = ConvertTo-LocalTime $Value
             }
             Write-Verbose "Creating output object."
             $ht.Add($NewProp,$Value)
@@ -129,6 +135,7 @@ function ConvertTo-PSObject
     }
 }
 
+# Converts a ByteArray to text characters.
 function ConvertFrom-ByteArray
 {
     [CmdletBinding()]
@@ -171,24 +178,7 @@ function ConvertFrom-ByteArray
     Write-Verbose "Finished processing array."
 }
 
-<#function Get-RESAMAgentTeams
-{
-    [CmdletBinding()]
-    param (
-        [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 0)]
-        [Alias('WUIDAgent')]
-        [guid]
-        $GUID
-    )
-    process
-    {
-        $Query = "select * from dbo.tblTeamAgents WHERE AgentGUID = '$($GUID.tostring())'"
-
-        Invoke-SQLQuery $Query | Get-RESAMTeam
-    }
-}#>
-
+# Translates a folder guid to a name and adds the name to an object.
 function Add-RESAMFolderName
 {
     [CmdletBinding()]
@@ -208,6 +198,7 @@ function Add-RESAMFolderName
     }
 }
 
+# Optimizes an agent object.
 function Optimize-RESAMAgent
 {
     [CmdletBinding()]
@@ -265,6 +256,7 @@ function Optimize-RESAMAgent
     }
 }
 
+# Optimizes a folder object, gives meaning to number values.
 function Optimize-RESAMFolder
 {
     [CmdletBinding()]
@@ -294,6 +286,7 @@ function Optimize-RESAMFolder
     }
 }
 
+# Optimizes a connector object, gives meaning to number values.
 function Optimize-RESAMConnector
 {
     [CmdletBinding()]
@@ -375,6 +368,7 @@ function Optimize-RESAMConnector
     }
 }
 
+# Converts UTC to local time.
 Function ConvertTo-LocalTime
 {
     Param(
@@ -387,6 +381,7 @@ Function ConvertTo-LocalTime
     [System.TimeZoneInfo]::ConvertTimeFromUtc($UTCTime, $TZ)
 }
 
+# Optimizes the job object, gives meaning to number values.
 function Optimize-RESAMJob
 {
     [CmdletBinding()]
@@ -430,13 +425,75 @@ function Optimize-RESAMJob
             9         {$InputObject.Status = 'Skipped'}
         }
         Write-Verbose "Status is '$($InputObject.Status)'"
-        Write-Verbose "Converting dates to local time."
-        $InputObject.StartDateTime = ConvertTo-LocalTime $InputObject.StartDateTime
-        $InputObject.StopDateTime = ConvertTo-LocalTime $InputObject.StopDateTime
+        #Write-Verbose "Converting dates to local time."
+        #$InputObject.StartDateTime = ConvertTo-LocalTime $InputObject.StartDateTime
+        #$InputObject.StopDateTime = ConvertTo-LocalTime $InputObject.StopDateTime
         $InputObject
     }
 }
 
+# Injects quotation marks into tab completion when validating a parameter value.
+function TabExpansion2
+{
+    [CmdletBinding(DefaultParameterSetName = 'ScriptInputSet')]
+    Param(
+        [Parameter(ParameterSetName = 'ScriptInputSet', Mandatory = $true, Position = 0)]
+        [string] $inputScript,
+    
+        [Parameter(ParameterSetName = 'ScriptInputSet', Mandatory = $true, Position = 1)]
+        [int] $cursorColumn,
+
+        [Parameter(ParameterSetName = 'AstInputSet', Mandatory = $true, Position = 0)]
+        [System.Management.Automation.Language.Ast] $ast,
+
+        [Parameter(ParameterSetName = 'AstInputSet', Mandatory = $true, Position = 1)]
+        [System.Management.Automation.Language.Token[]] $tokens,
+
+        [Parameter(ParameterSetName = 'AstInputSet', Mandatory = $true, Position = 2)]
+        [System.Management.Automation.Language.IScriptPosition] $positionOfCursor,
+    
+        [Parameter(ParameterSetName = 'ScriptInputSet', Position = 2)]
+        [Parameter(ParameterSetName = 'AstInputSet', Position = 3)]
+        [Hashtable] $options = $null
+    )
+
+    End
+    {
+        if ($psCmdlet.ParameterSetName -eq 'ScriptInputSet')
+        {
+            $completion = [System.Management.Automation.CommandCompletion]::CompleteInput(
+                $inputScript,
+                $cursorColumn,
+                $options)
+        }
+        else
+        {
+            $completion = [System.Management.Automation.CommandCompletion]::CompleteInput(
+                $ast,
+                $tokens,
+                $positionOfCursor,
+                $options)
+        }
+
+        $count = $completion.CompletionMatches.Count
+        for ($i = 0; $i -lt $count; $i++)
+        {
+            $result = $completion.CompletionMatches[$i]
+
+            if ($result.CompletionText -match '\s')
+            {
+                $completion.CompletionMatches[$i] = New-Object System.Management.Automation.CompletionResult(
+                    "'$($result.CompletionText)'",
+                    $result.ListItemText,
+                    $result.ResultType,
+                    $result.ToolTip
+                )
+            }
+        }
+
+        return $completion
+    }
+}
 
 #endregion HelperFunctions
 
@@ -596,6 +653,7 @@ function Get-RESAMAgent
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='Default',
                    Position = 0)]
+        [Alias('Agent')]
         [string]
         $Name,
         [Parameter(ValueFromPipelineByPropertyName=$true,
@@ -680,9 +738,15 @@ function Get-RESAMAgent
     Name of the Team.
 .PARAMETER GUID
     GUID of the Team.
+.PARAMETER Full
+    Retreive full information (Rules information etc.).
 .EXAMPLE
     Get-RESAMTeam -Name Team1
     Displays information on RES Automation Manager team 'Team1'
+.EXAMPLE
+    Get-RESAMAgent -Name PC1234 | Get-RESAMTeam
+    Displays RES Automation Manager teams of which agent 'PC1234'
+    is a member.
 .NOTES
     Author        : Michaja van der Zouwen
     Version       : 1.0
@@ -718,7 +782,10 @@ function Get-RESAMTeam
                 throw "Object type should be 'RES.AutomationManager.Agent'."
              }
         })]
-        $Agent
+        $Agent,
+
+        [switch]
+        $Full = $false
     )
     process
     {
@@ -748,10 +815,42 @@ function Get-RESAMTeam
             $Query = "select * from dbo.tblTeams"
         }
 
-        Invoke-SQLQuery $Query -Type Team
+        Invoke-SQLQuery $Query -Type Team -Full:$Full
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager Audit information.
+.DESCRIPTION
+    Get RES Automation Manager audit information from the 
+    RES Automation Manager Database.
+.PARAMETER Action
+    Filter audits based on an action. E.G. Abort,
+.PARAMETER StartDate
+    Display audit trail from a start date.
+.PARAMETER EndDate
+    Display audit trail up to an end date.
+.PARAMETER WindowsAccount
+    Display audits made by a specific Windows account.
+.PARAMETER Last
+    Display last 'n' audits.
+.EXAMPLE
+    Get-RESAMAudit -Action 'Primary Team changed' -StartDate (Get-Date).AddDays(-4)
+    Displays information on all Primary Team changes in the last four days.
+.EXAMPLE
+    Get-RESAMAudit -StartDate 02-2015 -EndDate 03-2015
+    Displays all audit information in february of 2015
+.EXAMPLE
+    Get-RESAMAudit -WindowsAccount DOMAIN\User123 -Last 10
+    Displays the last 10 audits made by user DOMAIN\User123.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMAudit
 {
     [CmdletBinding(DefaultParameterSetName='Default')]
@@ -762,13 +861,15 @@ function Get-RESAMAudit
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='TimeSpan',
                    Position = 0)]
+        [ValidateSet('Add','Delete','Edit','Edit (details)','Other','Primary Team changed','Register','Sign in','Sign out')]
         [string]
         $Action,
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='TimeSpan',
                    Position = 1)]
-        [Alias('from')]
+        [Alias('From')]
+        [Alias('Start')]
         [datetime]
         $StartDate,
 
@@ -776,6 +877,7 @@ function Get-RESAMAudit
                    ParameterSetName='TimeSpan',
                    Position = 2)]
         [Alias('Until')]
+        [Alias('End')]
         [datetime]
         $EndDate,
 
@@ -936,7 +1038,10 @@ function Get-RESAMModule
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
         [guid]
-        $GUID
+        $GUID,
+
+        [switch]
+        $Full = $false
     )
     process
     {
@@ -955,7 +1060,7 @@ function Get-RESAMModule
             $Query = "select * from dbo.tblModules"
         }
 
-        Invoke-SQLQuery $Query -Type Module | Add-RESAMFolderName
+        Invoke-SQLQuery $Query -Type Module -Full:$Full | Add-RESAMFolderName
     }
 }
 
@@ -972,7 +1077,10 @@ function Get-RESAMProject
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
         [guid]
-        $GUID
+        $GUID,
+
+        [switch]
+        $Full = $False
     )
     process
     {
@@ -991,7 +1099,7 @@ function Get-RESAMProject
             $Query = "select * from dbo.tblProjects"
         }
 
-        Invoke-SQLQuery $Query -Type Project | Add-RESAMFolderName
+        Invoke-SQLQuery $Query -Type Project -Full:$Full | Add-RESAMFolderName
     }
 }
 
@@ -1009,7 +1117,10 @@ function Get-RESAMRunBook
                    Position = 1)]
         [Alias('WUIDAgent')]
         [guid]
-        $GUID
+        $GUID,
+
+        [switch]
+        $Full = $False
     )
     process
     {
@@ -1028,7 +1139,7 @@ function Get-RESAMRunBook
             $Query = "select * from dbo.tblRunBooks"
         }
 
-        Invoke-SQLQuery $Query -Type RunBook | Add-RESAMFolderName
+        Invoke-SQLQuery $Query -Type RunBook -Full:$Full | Add-RESAMFolderName
     }
 }
 
