@@ -31,7 +31,8 @@
       </MemberSet>
 	  <ScriptProperty>
 		<Name>MACAddress</Name>
-		<GetScriptBlock>If ($this.Info.LAN.Adapter.MAC)
+		<GetScriptBlock>
+			If ($this.Info.LAN.Adapter.MAC)
 			{
 				$this.Info.LAN.Adapter.MAC
 			}
@@ -43,7 +44,8 @@
 	  </ScriptProperty>
 	  <ScriptProperty>
 		<Name>IPAddress</Name>
-		<GetScriptBlock>If ($this.Info.LAN.Adapter.IP)
+		<GetScriptBlock>
+			If ($this.Info.LAN.Adapter.IP)
 			{
 				$this.Info.LAN.Adapter.IP
 			}
@@ -86,6 +88,19 @@
 		<Name>TeamGUID</Name>
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
 	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>Rules</Name>
+		<GetScriptBlock>
+			If ($this.Properties.team)
+			{
+				$this.Properties.team.rules
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
     </Members>
   </Type>
   <Type>
@@ -115,6 +130,19 @@
           </PropertySet>
         </Members>
       </MemberSet>
+	  <ScriptProperty>
+		<Name>Parameters</Name>
+		<GetScriptBlock>
+			If ($this.Tasks.tasks.task)
+			{
+				$this.Tasks.tasks.task.parameters.param
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
 	  <ScriptProperty>
 		<Name>ModuleGUID</Name>
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
