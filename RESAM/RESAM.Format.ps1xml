@@ -101,6 +101,9 @@
               <PropertyName>Description</PropertyName>
             </ListItem>
 			<ListItem>
+              <PropertyName>Parameters</PropertyName>
+            </ListItem>
+			<ListItem>
               <PropertyName>FolderName</PropertyName>
             </ListItem>
           </ListItems>
