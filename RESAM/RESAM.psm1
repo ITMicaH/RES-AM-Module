@@ -826,7 +826,7 @@ function Get-RESAMTeam
     Get RES Automation Manager audit information from the 
     RES Automation Manager Database.
 .PARAMETER Action
-    Filter audits based on an action. E.G. Abort,
+    Filter audits based on an action. E.G. Abort, Sign in, etc...
 .PARAMETER StartDate
     Display audit trail from a start date.
 .PARAMETER EndDate
@@ -959,6 +959,7 @@ strComputerMAC from dbo.tblAudits"
     }
 }
 
+
 function Get-RESAMDispatcher
 {
     [CmdletBinding()]
@@ -971,7 +972,10 @@ function Get-RESAMDispatcher
                    Position = 1)]
         [Alias('WUIDDispatcher')]
         [guid]
-        $GUID
+        $GUID,
+
+        [switch]
+        $Full = $false
     )
     process
     {
@@ -988,7 +992,7 @@ function Get-RESAMDispatcher
             $Query = "select * from dbo.tblDispatchers"
         }
 
-        Invoke-SQLQuery $Query -Type Dispatcher
+        Invoke-SQLQuery $Query -Type Dispatcher -Full:$Full
     }
 }
 
