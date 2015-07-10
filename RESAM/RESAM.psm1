@@ -708,7 +708,7 @@ function Get-RESAMAgent
             $Query = "select * from dbo.tblTeamAgents WHERE TeamGUID = '$($Team.GUID)'"
             Invoke-SQLQuery $Query -Type TeamAgent | %{
                 $Query = "select * from dbo.tblAgents WHERE WUIDAgent = '$($_.AgentGUID)'"
-                Invoke-SQLQuery $Query -Type Agent
+                Invoke-SQLQuery $Query -Type Agent -Full:$Full | Optimize-RESAMAgent
             }
             return
         }    
