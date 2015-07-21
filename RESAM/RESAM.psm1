@@ -28,7 +28,21 @@ function Invoke-SQLQuery
     {
         If (!$RESAM_DB_Connection)
         {
-            Throw "No open connection to a RES Automation Manager database detected. Run command Connect-RESAMDatabase first."
+            Throw "No connection to a RES Automation Manager database detected. Run command Connect-RESAMDatabase first."
+        }
+        elseif ($RESAM_DB_Connection.State -eq 'Closed')
+        {
+            Write-Verbose 'Connection to the database is closed. Re-opening connection...'
+            try
+            {
+                $RESAM_DB_Connection.Open()
+            }
+            catch
+            {
+                Write-Verbose "Error re-opening connection. Removing connection variable."
+                Remove-Variable -Scope Global -Name RESAM_DB_Connection
+                throw "Unable to re-open conection to the database. Please reconnect using the Connect-RESAMDatabase commandlet. Error is $($_.exception)."
+            }
         }
     }
     Process
@@ -405,7 +419,7 @@ function Optimize-RESAMJob
             5  {$InputObject.JobInvokerInfo = 'RES Workspace Manager'}
             7  {$InputObject.JobInvokerInfo = 'New Agent'}
             8  {$InputObject.JobInvokerInfo = 'Boot'}
-            9  {$InputObject.JobInvokerInfo = 'Project/Runbook'}
+            9  {$InputObject.JobInvokerInfo = 'Runbook'}
         }
         Write-Verbose "Job Invoker is '$($InputObject.JobInvokerInfo)'."
 
@@ -432,69 +446,6 @@ function Optimize-RESAMJob
     }
 }
 
-# Injects quotation marks into tab completion when validating a parameter value.
-function TabExpansion2
-{
-    [CmdletBinding(DefaultParameterSetName = 'ScriptInputSet')]
-    Param(
-        [Parameter(ParameterSetName = 'ScriptInputSet', Mandatory = $true, Position = 0)]
-        [string] $inputScript,
-    
-        [Parameter(ParameterSetName = 'ScriptInputSet', Mandatory = $true, Position = 1)]
-        [int] $cursorColumn,
-
-        [Parameter(ParameterSetName = 'AstInputSet', Mandatory = $true, Position = 0)]
-        [System.Management.Automation.Language.Ast] $ast,
-
-        [Parameter(ParameterSetName = 'AstInputSet', Mandatory = $true, Position = 1)]
-        [System.Management.Automation.Language.Token[]] $tokens,
-
-        [Parameter(ParameterSetName = 'AstInputSet', Mandatory = $true, Position = 2)]
-        [System.Management.Automation.Language.IScriptPosition] $positionOfCursor,
-    
-        [Parameter(ParameterSetName = 'ScriptInputSet', Position = 2)]
-        [Parameter(ParameterSetName = 'AstInputSet', Position = 3)]
-        [Hashtable] $options = $null
-    )
-
-    End
-    {
-        if ($psCmdlet.ParameterSetName -eq 'ScriptInputSet')
-        {
-            $completion = [System.Management.Automation.CommandCompletion]::CompleteInput(
-                $inputScript,
-                $cursorColumn,
-                $options)
-        }
-        else
-        {
-            $completion = [System.Management.Automation.CommandCompletion]::CompleteInput(
-                $ast,
-                $tokens,
-                $positionOfCursor,
-                $options)
-        }
-
-        $count = $completion.CompletionMatches.Count
-        for ($i = 0; $i -lt $count; $i++)
-        {
-            $result = $completion.CompletionMatches[$i]
-
-            if ($result.CompletionText -match '\s')
-            {
-                $completion.CompletionMatches[$i] = New-Object System.Management.Automation.CompletionResult(
-                    "'$($result.CompletionText)'",
-                    $result.ListItemText,
-                    $result.ResultType,
-                    $result.ToolTip
-                )
-            }
-        }
-
-        return $completion
-    }
-}
-
 #endregion HelperFunctions
 
 <#
@@ -509,7 +460,7 @@ function TabExpansion2
     Name of the RES Automation Manager Database.
 .PARAMETER Credential
     Credentials for the connection. Accepts PSCredentials or a username. The user must have 
-    read privileges on the database.
+    read privileges on the database. If omitted, the default credentials will be used.
 .PARAMETER PassThru
     Returns the connection object.
 .EXAMPLE
@@ -543,7 +494,7 @@ function Connect-RESAMDatabase
         [Alias('DBName')]
         [string]
         $DatabaseName,
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
                    Position=2)]
         $Credential,
 
@@ -562,7 +513,15 @@ function Connect-RESAMDatabase
     }
 
     Write-Verbose "Connecting to database $DatabaseName on $DataSource..."
-    $connectionString = "Server=$dataSource;uid=$($Credential.username);pwd=$($Credential.GetNetworkCredential().password);Database=$DatabaseName;Integrated Security=False;"
+    $connectionString = "Server=$dataSource;Database=$DatabaseName"
+    If ($Credential)
+    {
+        $connectionString = "$connectionString;uid=$($Credential.username);pwd=$($Credential.GetNetworkCredential().password);Integrated Security=False;"
+    }
+    else
+    {
+        $connectionString = "$connectionString;Integrated Security=sspi;"
+    }
     $global:RESAM_DB_Connection = New-Object System.Data.SqlClient.SqlConnection
     $RESAM_DB_Connection.ConnectionString = $connectionString
     $RESAM_DB_Connection.Open()
@@ -1334,6 +1293,9 @@ function Get-RESAMMasterJob
         [switch]
         $Active,
 
+        [switch]
+        $InvokedByRunbook,
+
         [int]
         $Last,
 
@@ -1364,6 +1326,10 @@ function Get-RESAMMasterJob
         {
             $Filter += "ModuleGUID = '$ModuleGUID'"
         }
+        if ($InvokedByRunbook)
+        {
+            $Filter += "lngJobInvoker = 9"
+        }
         else
         {
             $Filter += "lngJobInvoker <> 9"
@@ -1373,7 +1339,7 @@ function Get-RESAMMasterJob
             Write-Verbose "Running query based on GUID $GUID."
             $Filter += "MasterJobGUID = '$($GUID.tostring())'"
         }
-        Elseif ($Description -and !$ModuleGUID)
+        If ($Description -and !$ModuleGUID)
         {
             Write-Verbose "Running query based on description '$Description'."
             $Filter += "strDescription LIKE '$($Description.replace('*','%'))'"
@@ -1403,6 +1369,7 @@ function Get-RESAMMasterJob
     }
 }
 
+<#
 function Get-RESAMJobTask
 {
     [CmdletBinding()]
@@ -1508,6 +1475,7 @@ function Get-RESAMJobTask
         Invoke-SQLQuery $Query -Type Job -Full:$Full | Optimize-RESAMJob
     }
 }
+#>
 
 function Get-RESAMJob
 {
@@ -1517,7 +1485,6 @@ function Get-RESAMJob
                    Position = 0)]
         [Alias('WUIDAgent')]
         [Alias('AgentGUID')]
-        [guid]
         $Agent,
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
@@ -1561,6 +1528,17 @@ function Get-RESAMJob
         {
             $Filter += "(lngStatus = 0 OR lngStatus = -1)"
             $Filter += "RecurringJobGUID IS NULL"
+        }
+        If ($Agent)
+        {
+            If ($Agent -is [guid])
+            {
+                $Filter += "AgentGUID = '$Agent'"
+            }
+            else 
+            {
+                $Filter += "strAgent = '$Agent'"
+            }
         }
         If ($JobGUID)
         {
