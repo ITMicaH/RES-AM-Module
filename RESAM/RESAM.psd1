@@ -69,7 +69,6 @@ FormatsToProcess = 'RESAM.Format.ps1xml'
 FunctionsToExport = @(
     'Connect-RESAMDatabase'
     'Disconnect-RESAMDatabase'
-    'TabExpansion2'
     'Get-RESAMAgent'
     'Get-RESAMTeam'
     'Get-RESAMAudit'
