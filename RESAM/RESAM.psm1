@@ -1,6 +1,7 @@
 
 #region HelperFunctions
 
+# Invokes a query on the RES AM Database.
 function Invoke-SQLQuery
 {
     [CmdletBinding()]
@@ -27,7 +28,21 @@ function Invoke-SQLQuery
     {
         If (!$RESAM_DB_Connection)
         {
-            Throw "No open connection to a RES Automation Manager database detected. Run command Connect-RESAMDatabase first."
+            Throw "No connection to a RES Automation Manager database detected. Run command Connect-RESAMDatabase first."
+        }
+        elseif ($RESAM_DB_Connection.State -eq 'Closed')
+        {
+            Write-Verbose 'Connection to the database is closed. Re-opening connection...'
+            try
+            {
+                $RESAM_DB_Connection.Open()
+            }
+            catch
+            {
+                Write-Verbose "Error re-opening connection. Removing connection variable."
+                Remove-Variable -Scope Global -Name RESAM_DB_Connection
+                throw "Unable to re-open conection to the database. Please reconnect using the Connect-RESAMDatabase commandlet. Error is $($_.exception)."
+            }
         }
     }
     Process
@@ -46,11 +61,11 @@ function Invoke-SQLQuery
         }
         If ($Type)
         {
-            $CustomTable | ConvertTo-PSObject -Type $Type -Full:$Full
+            $CustomTable | ConvertTo-RESAMObject -Type $Type -Full:$Full
         }
         else
         {
-            $CustomTable | ConvertTo-PSObject -Full:$Full
+            $CustomTable | ConvertTo-RESAMObject -Full:$Full
         }
 
         $result.close()
@@ -61,7 +76,8 @@ function Invoke-SQLQuery
     }
 }
 
-function ConvertTo-PSObject
+# Converts a SQL query result object to a RES AM object.
+function ConvertTo-RESAMObject
 {
     [CmdletBinding()]
     [OutputType([int])]
@@ -110,12 +126,16 @@ function ConvertTo-PSObject
                 }
                 else
                 {
-                    $Value = "<Use '-Full' parameter for details>"
+                    $Value = "Use '-Full' parameter for details"
                 }
             }
             If ($Property -eq 'imgWho')
             {
                 $NewProp = 'WhoGUID'
+            }
+            If ($InputObject.$Property -is [datetime])
+            {
+                $Value = ConvertTo-LocalTime $Value
             }
             Write-Verbose "Creating output object."
             $ht.Add($NewProp,$Value)
@@ -129,6 +149,7 @@ function ConvertTo-PSObject
     }
 }
 
+# Converts a ByteArray to text characters.
 function ConvertFrom-ByteArray
 {
     [CmdletBinding()]
@@ -171,24 +192,7 @@ function ConvertFrom-ByteArray
     Write-Verbose "Finished processing array."
 }
 
-<#function Get-RESAMAgentTeams
-{
-    [CmdletBinding()]
-    param (
-        [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 0)]
-        [Alias('WUIDAgent')]
-        [guid]
-        $GUID
-    )
-    process
-    {
-        $Query = "select * from dbo.tblTeamAgents WHERE AgentGUID = '$($GUID.tostring())'"
-
-        Invoke-SQLQuery $Query | Get-RESAMTeam
-    }
-}#>
-
+# Translates a folder guid to a name and adds the name to an object.
 function Add-RESAMFolderName
 {
     [CmdletBinding()]
@@ -208,6 +212,7 @@ function Add-RESAMFolderName
     }
 }
 
+# Optimizes an agent object.
 function Optimize-RESAMAgent
 {
     [CmdletBinding()]
@@ -265,6 +270,7 @@ function Optimize-RESAMAgent
     }
 }
 
+# Optimizes a folder object, gives meaning to number values.
 function Optimize-RESAMFolder
 {
     [CmdletBinding()]
@@ -294,6 +300,7 @@ function Optimize-RESAMFolder
     }
 }
 
+# Optimizes a connector object, gives meaning to number values.
 function Optimize-RESAMConnector
 {
     [CmdletBinding()]
@@ -375,6 +382,7 @@ function Optimize-RESAMConnector
     }
 }
 
+# Converts UTC to local time.
 Function ConvertTo-LocalTime
 {
     Param(
@@ -387,6 +395,7 @@ Function ConvertTo-LocalTime
     [System.TimeZoneInfo]::ConvertTimeFromUtc($UTCTime, $TZ)
 }
 
+# Optimizes the job object, gives meaning to number values.
 function Optimize-RESAMJob
 {
     [CmdletBinding()]
@@ -410,7 +419,7 @@ function Optimize-RESAMJob
             5  {$InputObject.JobInvokerInfo = 'RES Workspace Manager'}
             7  {$InputObject.JobInvokerInfo = 'New Agent'}
             8  {$InputObject.JobInvokerInfo = 'Boot'}
-            9  {$InputObject.JobInvokerInfo = 'Project/Runbook'}
+            9  {$InputObject.JobInvokerInfo = 'Runbook'}
         }
         Write-Verbose "Job Invoker is '$($InputObject.JobInvokerInfo)'."
 
@@ -430,13 +439,12 @@ function Optimize-RESAMJob
             9         {$InputObject.Status = 'Skipped'}
         }
         Write-Verbose "Status is '$($InputObject.Status)'"
-        Write-Verbose "Converting dates to local time."
-        $InputObject.StartDateTime = ConvertTo-LocalTime $InputObject.StartDateTime
-        $InputObject.StopDateTime = ConvertTo-LocalTime $InputObject.StopDateTime
+        #Write-Verbose "Converting dates to local time."
+        #$InputObject.StartDateTime = ConvertTo-LocalTime $InputObject.StartDateTime
+        #$InputObject.StopDateTime = ConvertTo-LocalTime $InputObject.StopDateTime
         $InputObject
     }
 }
-
 
 #endregion HelperFunctions
 
@@ -452,7 +460,7 @@ function Optimize-RESAMJob
     Name of the RES Automation Manager Database.
 .PARAMETER Credential
     Credentials for the connection. Accepts PSCredentials or a username. The user must have 
-    read privileges on the database.
+    read privileges on the database. If omitted, the default credentials will be used.
 .PARAMETER PassThru
     Returns the connection object.
 .EXAMPLE
@@ -486,7 +494,7 @@ function Connect-RESAMDatabase
         [Alias('DBName')]
         [string]
         $DatabaseName,
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$false,
                    Position=2)]
         $Credential,
 
@@ -505,7 +513,15 @@ function Connect-RESAMDatabase
     }
 
     Write-Verbose "Connecting to database $DatabaseName on $DataSource..."
-    $connectionString = "Server=$dataSource;uid=$($Credential.username);pwd=$($Credential.GetNetworkCredential().password);Database=$DatabaseName;Integrated Security=False;"
+    $connectionString = "Server=$dataSource;Database=$DatabaseName"
+    If ($Credential)
+    {
+        $connectionString = "$connectionString;uid=$($Credential.username);pwd=$($Credential.GetNetworkCredential().password);Integrated Security=False;"
+    }
+    else
+    {
+        $connectionString = "$connectionString;Integrated Security=sspi;"
+    }
     $global:RESAM_DB_Connection = New-Object System.Data.SqlClient.SqlConnection
     $RESAM_DB_Connection.ConnectionString = $connectionString
     $RESAM_DB_Connection.Open()
@@ -596,6 +612,7 @@ function Get-RESAMAgent
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='Default',
                    Position = 0)]
+        [Alias('Agent')]
         [string]
         $Name,
         [Parameter(ValueFromPipelineByPropertyName=$true,
@@ -650,7 +667,7 @@ function Get-RESAMAgent
             $Query = "select * from dbo.tblTeamAgents WHERE TeamGUID = '$($Team.GUID)'"
             Invoke-SQLQuery $Query -Type TeamAgent | %{
                 $Query = "select * from dbo.tblAgents WHERE WUIDAgent = '$($_.AgentGUID)'"
-                Invoke-SQLQuery $Query -Type Agent
+                Invoke-SQLQuery $Query -Type Agent -Full:$Full | Optimize-RESAMAgent
             }
             return
         }    
@@ -680,9 +697,15 @@ function Get-RESAMAgent
     Name of the Team.
 .PARAMETER GUID
     GUID of the Team.
+.PARAMETER Full
+    Retreive full information (Rules information etc.).
 .EXAMPLE
     Get-RESAMTeam -Name Team1
     Displays information on RES Automation Manager team 'Team1'
+.EXAMPLE
+    Get-RESAMAgent -Name PC1234 | Get-RESAMTeam
+    Displays RES Automation Manager teams of which agent 'PC1234'
+    is a member.
 .NOTES
     Author        : Michaja van der Zouwen
     Version       : 1.0
@@ -718,7 +741,10 @@ function Get-RESAMTeam
                 throw "Object type should be 'RES.AutomationManager.Agent'."
              }
         })]
-        $Agent
+        $Agent,
+
+        [switch]
+        $Full = $false
     )
     process
     {
@@ -748,10 +774,42 @@ function Get-RESAMTeam
             $Query = "select * from dbo.tblTeams"
         }
 
-        Invoke-SQLQuery $Query -Type Team
+        Invoke-SQLQuery $Query -Type Team -Full:$Full
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager Audit information.
+.DESCRIPTION
+    Get RES Automation Manager audit information from the 
+    RES Automation Manager Database.
+.PARAMETER Action
+    Filter audits based on an action. E.G. Abort, Sign in, etc...
+.PARAMETER StartDate
+    Display audit trail from a start date.
+.PARAMETER EndDate
+    Display audit trail up to an end date.
+.PARAMETER WindowsAccount
+    Display audits made by a specific Windows account.
+.PARAMETER Last
+    Display last 'n' audits.
+.EXAMPLE
+    Get-RESAMAudit -Action 'Primary Team changed' -StartDate (Get-Date).AddDays(-4)
+    Displays information on all Primary Team changes in the last four days.
+.EXAMPLE
+    Get-RESAMAudit -StartDate 02-2015 -EndDate 03-2015
+    Displays all audit information in february of 2015
+.EXAMPLE
+    Get-RESAMAudit -WindowsAccount DOMAIN\User123 -Last 10
+    Displays the last 10 audits made by user DOMAIN\User123.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMAudit
 {
     [CmdletBinding(DefaultParameterSetName='Default')]
@@ -762,13 +820,15 @@ function Get-RESAMAudit
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='TimeSpan',
                    Position = 0)]
+        [ValidateSet('Add','Delete','Edit','Edit (details)','Other','Primary Team changed','Register','Sign in','Sign out')]
         [string]
         $Action,
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='TimeSpan',
                    Position = 1)]
-        [Alias('from')]
+        [Alias('From')]
+        [Alias('Start')]
         [datetime]
         $StartDate,
 
@@ -776,6 +836,7 @@ function Get-RESAMAudit
                    ParameterSetName='TimeSpan',
                    Position = 2)]
         [Alias('Until')]
+        [Alias('End')]
         [datetime]
         $EndDate,
 
@@ -857,6 +918,7 @@ strComputerMAC from dbo.tblAudits"
     }
 }
 
+
 function Get-RESAMDispatcher
 {
     [CmdletBinding()]
@@ -869,7 +931,10 @@ function Get-RESAMDispatcher
                    Position = 1)]
         [Alias('WUIDDispatcher')]
         [guid]
-        $GUID
+        $GUID,
+
+        [switch]
+        $Full = $false
     )
     process
     {
@@ -886,7 +951,7 @@ function Get-RESAMDispatcher
             $Query = "select * from dbo.tblDispatchers"
         }
 
-        Invoke-SQLQuery $Query -Type Dispatcher
+        Invoke-SQLQuery $Query -Type Dispatcher -Full:$Full
     }
 }
 
@@ -936,7 +1001,10 @@ function Get-RESAMModule
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
         [guid]
-        $GUID
+        $GUID,
+
+        [switch]
+        $Full = $false
     )
     process
     {
@@ -955,7 +1023,7 @@ function Get-RESAMModule
             $Query = "select * from dbo.tblModules"
         }
 
-        Invoke-SQLQuery $Query -Type Module | Add-RESAMFolderName
+        Invoke-SQLQuery $Query -Type Module -Full:$Full | Add-RESAMFolderName
     }
 }
 
@@ -972,7 +1040,10 @@ function Get-RESAMProject
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
         [guid]
-        $GUID
+        $GUID,
+
+        [switch]
+        $Full = $False
     )
     process
     {
@@ -991,7 +1062,7 @@ function Get-RESAMProject
             $Query = "select * from dbo.tblProjects"
         }
 
-        Invoke-SQLQuery $Query -Type Project | Add-RESAMFolderName
+        Invoke-SQLQuery $Query -Type Project -Full:$Full | Add-RESAMFolderName
     }
 }
 
@@ -1009,7 +1080,10 @@ function Get-RESAMRunBook
                    Position = 1)]
         [Alias('WUIDAgent')]
         [guid]
-        $GUID
+        $GUID,
+
+        [switch]
+        $Full = $False
     )
     process
     {
@@ -1028,7 +1102,7 @@ function Get-RESAMRunBook
             $Query = "select * from dbo.tblRunBooks"
         }
 
-        Invoke-SQLQuery $Query -Type RunBook | Add-RESAMFolderName
+        Invoke-SQLQuery $Query -Type RunBook -Full:$Full | Add-RESAMFolderName
     }
 }
 
@@ -1219,6 +1293,9 @@ function Get-RESAMMasterJob
         [switch]
         $Active,
 
+        [switch]
+        $InvokedByRunbook,
+
         [int]
         $Last,
 
@@ -1249,6 +1326,10 @@ function Get-RESAMMasterJob
         {
             $Filter += "ModuleGUID = '$ModuleGUID'"
         }
+        if ($InvokedByRunbook)
+        {
+            $Filter += "lngJobInvoker = 9"
+        }
         else
         {
             $Filter += "lngJobInvoker <> 9"
@@ -1258,7 +1339,7 @@ function Get-RESAMMasterJob
             Write-Verbose "Running query based on GUID $GUID."
             $Filter += "MasterJobGUID = '$($GUID.tostring())'"
         }
-        Elseif ($Description -and !$ModuleGUID)
+        If ($Description -and !$ModuleGUID)
         {
             Write-Verbose "Running query based on description '$Description'."
             $Filter += "strDescription LIKE '$($Description.replace('*','%'))'"
@@ -1288,6 +1369,7 @@ function Get-RESAMMasterJob
     }
 }
 
+<#
 function Get-RESAMJobTask
 {
     [CmdletBinding()]
@@ -1393,6 +1475,7 @@ function Get-RESAMJobTask
         Invoke-SQLQuery $Query -Type Job -Full:$Full | Optimize-RESAMJob
     }
 }
+#>
 
 function Get-RESAMJob
 {
@@ -1402,7 +1485,6 @@ function Get-RESAMJob
                    Position = 0)]
         [Alias('WUIDAgent')]
         [Alias('AgentGUID')]
-        [guid]
         $Agent,
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
@@ -1446,6 +1528,17 @@ function Get-RESAMJob
         {
             $Filter += "(lngStatus = 0 OR lngStatus = -1)"
             $Filter += "RecurringJobGUID IS NULL"
+        }
+        If ($Agent)
+        {
+            If ($Agent -is [guid])
+            {
+                $Filter += "AgentGUID = '$Agent'"
+            }
+            else 
+            {
+                $Filter += "strAgent = '$Agent'"
+            }
         }
         If ($JobGUID)
         {
