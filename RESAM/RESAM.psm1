@@ -452,6 +452,53 @@ function Optimize-RESAMJob
     }
 }
 
+# Invokes a method using the REST Api
+function Invoke-RESAMRestMethod {
+    [CmdletBinding()]
+	param(
+        [Parameter(Mandatory=$True)]
+	    [string]
+        $Uri,
+
+        [Parameter(Mandatory=$True)]
+        [ValidateSet("GET","PUT","POST")] 
+	    [string]
+        $Method,
+
+        [Parameter(Mandatory=$True)]
+        $Credential,
+	    
+        [System.Object]
+        $Body
+	)
+	begin
+    {
+        If ($Credential) {
+            Write-Verbose "Processing credentials."
+            $Message = "Please enter RES Automation Manager credentials to connect to the Dispatcher."
+            switch ($Credential.GetType().Name)
+            {
+                'PSCredential' {}
+                'String' {$Credential = Get-Credential $Credential -Message $Message}
+            }
+        }
+    }
+	process {
+		$Splat = @{
+			Uri = $Uri
+			Credential = $Credential
+			Method = $Method
+			ContentType = "application/json"
+			SessionVariable = "Script:ResAMSession"
+		}
+		if($Body){
+			$Splat.Add("Body",$Body)
+		}
+		
+		Invoke-RestMethod @Splat
+	}
+}
+
 #endregion HelperFunctions
 
 <#
@@ -1663,6 +1710,7 @@ function Get-RESAMQueryResult
     }
 }
 
+#NOT READY
 function Get-RESAMLog
 {
     [CmdletBinding()]
@@ -1711,23 +1759,54 @@ function New-RESAMJob {
     [CmdletBinding()]
 	param(
         [Parameter(Mandatory=$True)]
-		[String]$Dispatcher,
+		[String]
+        $Dispatcher,
+
         [Parameter(Mandatory=$True)]
-		[System.Management.Automation.PSCredential]$Credential,
-		[String]$Description,
-		[String]$Agent,
+		$Credential,
+
+		[String]
+        $Description,
+
+		[String]
+        $Agent,
         [Parameter(ParameterSetName='Module')]
-        [String]$Module,
+        [String]
+        $Module,
+
         [Parameter(ParameterSetName='Project')]
-		[String]$Project,
+		[String]
+        $Project,
+
         [Parameter(ParameterSetName='RunBook')]
-		[String]$RunBook,
-		[DateTime]$Start,
-        [Switch]$LocalTime = $true,
-		[Switch]$UseWOL = $false,
-		[HashTable]$Parameter
+		[String]
+        $RunBook,
+
+		[DateTime]
+        $Start,
+
+        [Switch]
+        $LocalTime = $true,
+
+		[Switch]
+        $UseWOL = $false,
+
+		[PSObject]
+        $Parameter
 	)
 
+    begin
+    {
+        If ($Credential) {
+            Write-Verbose "Processing credentials."
+            $Message = "Please enter RES Automation Manager credentials to connect to the Dispatcher."
+            switch ($Credential.GetType().Name)
+            {
+                'PSCredential' {}
+                'String' {$Credential = Get-Credential $Credential -Message $Message}
+            }
+        }
+    }
 	process {
         If ($Start)
         {
@@ -1803,51 +1882,40 @@ function New-RESAMJob {
 			Method = "POST"
 			Credential = $Credential
 		}
-		Invoke-ResAMREST @pREST -Body (ConvertTo-Json $blob -Depth 99)
+		Invoke-RESAMRestMethod @pREST -Body (ConvertTo-Json $blob -Depth 99)
 	}
 }
 
-function Invoke-ResAMREST {
+function Get-RESAMInputParameter {
     [CmdletBinding()]
 	param(
         [Parameter(Mandatory=$True)]
-	    [string]$Uri,
-        [Parameter(Mandatory=$True)]
-        [ValidateSet("GET","PUT","POST")] 
-	    [string]$Method,
-        [Parameter(Mandatory=$True)]
-	    [System.Management.Automation.PSCredential]$Credential,
-	    [System.Object]$Body
-	)
-	
-	process {
-		$restSplat = @{
-			Uri = $Uri
-			Credential = $Credential
-			Method = $Method
-			ContentType = "application/json"
-			SessionVariable = "Script:ResAMSession"
-		}
-		if($Body){
-			$restSplat.Add("Body",$Body)
-		}
-		
-		Invoke-RestMethod @restSplat
-	}
-}
+		[String]
+        $Dispatcher,
 
-function Get-ResAMInputParameter {
-    [CmdletBinding()]
-	param(
-    [Parameter(Mandatory=$True)]
-		[String]$Dispatcher,
-    [Parameter(Mandatory=$True)]
-		[System.Management.Automation.PSCredential]$Credential,
-    [Parameter(Mandatory=$True)]
-		[PSObject]$What,
-    [Switch]$Raw = $false
+        [Parameter(Mandatory=$True)]
+	    $Credential,
+
+        [Parameter(Mandatory=$True,
+                   ValueFromPipeline=$True)]
+		[PSObject]
+        $What,
+
+        [Switch]
+        $Raw = $false
 	)
-	
+	begin
+    {
+        If ($Credential) {
+            Write-Verbose "Processing credentials."
+            $Message = "Please enter RES Automation Manager credentials to connect to the Dispatcher."
+            switch ($Credential.GetType().Name)
+            {
+                'PSCredential' {}
+                'String' {$Credential = Get-Credential $Credential -Message $Message}
+            }
+        }
+    }
 	process {
 		$endPoint = "Dispatcher/SchedulingService/what"
         $Type = $What.PSObject.TypeNames | ?{$_ -like 'RES*'}
@@ -1860,7 +1928,7 @@ function Get-ResAMInputParameter {
 #
 # Only parameters that are actually used in any of the module tasks will be returned !
 #
-		$result = Invoke-ResAMREST @pREST
+		$result = Invoke-RESAMRestMethod @pREST
         if($Raw){$result}
         else{$result.JobParameters}
 	}
