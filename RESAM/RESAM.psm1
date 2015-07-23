@@ -179,13 +179,19 @@ function ConvertFrom-ByteArray
         Write-Verbose "Not able to convert array to XML object."
         $Object = Try{
             Write-Verbose "Attempting to cast object as GUID."
-            $Text -as [guid]
-            Write-Verbose "Object is indeed a GUID."
+            If ($Text -as [guid])
+            {
+                Write-Verbose "Object is indeed a GUID."
+            }
+            else
+            {
+                Write-Verbose "Object is not a GUID."
+                Write-Verbose "Casting object as a string value."
+                $Text
+            }
         }
         catch {
-            Write-Verbose "Object is not a GUID."
-            Write-Verbose "Casting object as a string value."
-            $Text
+            throw 'Unknown error occurred.'
         }
     }
     $Object
@@ -1497,11 +1503,21 @@ function Get-RESAMJob
         [guid]
         $JobGUID,
         
-        [switch]
-        $Scheduled,
-
-        [switch]
-        $Active,
+        [Parameter(ValueFromPipelineByPropertyName=$false,
+                   Position = 3)]
+        [ValidateSet('On Hold',
+                    'Scheduled',
+                    'Active',
+                    'Aborting',
+                    'Aborted',
+                    'Completed',
+                    'Failed',
+                    'Failed Halted',
+                    'Cancelled',
+                    'Completed with Errors',
+                    'Skipped')]
+        [string]
+        $Status,
 
         [int]
         $Last,
@@ -1549,9 +1565,23 @@ function Get-RESAMJob
             Write-Verbose "Running query based on MasterJobGUID $MasterJobGUID."
             $Filter += "MasterJobGUID = '$MasterJobGUID'"
         }
-        If ($Active)
+        If ($Status)
         {
-            $Filter += "lngStatus = 1"
+            switch ($Status)
+            {
+                'On Hold'               {$Status = -1}
+                'Scheduled'             {$Status = 0}
+                'Active'                {$Status = 1}
+                'Aborting'              {$Status = 2}
+                'Aborted'               {$Status = 3}
+                'Completed'             {$Status = 4}
+                'Failed'                {$Status = 5}
+                'Failed Halted'         {$Status = 6}
+                'Cancelled'             {$Status = 7}
+                'Completed with Errors' {$Status = 8}
+                'Skipped'               {$Status = 9}
+            }
+            $Filter += "lngStatus = $Status"
         }
 
         $Query = "select $LastNr * from dbo.tblJobs"
@@ -1631,4 +1661,207 @@ function Get-RESAMQueryResult
         $Query = "$Query order by dtmDateTime DESC"
         Invoke-SQLQuery $Query -Type QueryResult
     }
+}
+
+function Get-RESAMLog
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$True,
+                   ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Job',
+                   Position = 0)]
+        [Alias('strAgent')]
+        [guid]
+        $JobGUID,
+
+        [Parameter(Mandatory=$True,
+                   ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Task',
+                   Position = 0)]
+        [Alias('QueryGUID')]
+        [guid]
+        $TaskGUID
+    )
+    begin
+    {
+    }
+    process
+    {
+        If ($JobGUID)
+        {
+            Write-Verbose "Running query based on JobGUID $JobGUID."
+            $Query = "select * from dbo.tblLogs WHERE JobGUID = '$JobGUID'"
+        }
+        ElseIf ($TaskGUID)
+        {
+            Write-Verbose "Running query based on TaskGUID $TaskGUID."
+            $Query = "select * from dbo.tblLogs WHERE TaskGUID = '$TaskGUID'"
+        }
+        $Logs = Invoke-SQLQuery $Query
+        foreach ($Log in $Logs)
+        {
+            $FileQuery = "select * from dbo.tblFiles WHERE GUID = '$($Log.FileGUID)'"
+            Invoke-SQLQuery $FileQuery -Type LogFile
+        }
+    }
+}
+
+function New-RESAMJob {
+    [CmdletBinding()]
+	param(
+        [Parameter(Mandatory=$True)]
+		[String]$Dispatcher,
+        [Parameter(Mandatory=$True)]
+		[System.Management.Automation.PSCredential]$Credential,
+		[String]$Description,
+		[String]$Agent,
+        [Parameter(ParameterSetName='Module')]
+        [String]$Module,
+        [Parameter(ParameterSetName='Project')]
+		[String]$Project,
+        [Parameter(ParameterSetName='RunBook')]
+		[String]$RunBook,
+		[DateTime]$Start,
+        [Switch]$LocalTime = $true,
+		[Switch]$UseWOL = $false,
+		[HashTable]$Parameter
+	)
+
+	process {
+        If ($Start)
+        {
+            $Immediate = $false
+        }
+        else
+        {
+            $Immediate = $True
+            $Start = Get-Date
+        }
+        if($Module)
+        {
+            $tgtTask = Get-ResAMModule $Module
+            $Type = 0
+        }
+        if($Project)
+        {
+            $tgtTask = Get-ResAMProject $Project
+            $Type = 1
+        }
+        if($RunBook)
+        {
+            $tgtTask = Get-ResAMRunBook $RunBook
+            $Type = 2
+        }
+
+        $tgtParameters = Get-ResAMInputParameter -Dispatcher $Dispatcher -Credential $Credential -What $tgtTask -Raw         
+        $tgtAgent = Get-ResAMAgent $Agent
+
+        if($Parameter){
+            $updatedJobParameters = &{
+                foreach($jobParam in $tgtParameters.JobParameters){
+                    $Parameter.GetEnumerator() | %{
+                        if($_.Key -eq $jobParam.Name){
+                            $jobParam.Value1 = $_.Value
+                        }
+                    }
+                    $jobParam
+                } 
+            }
+            $tgtParameters.JobParameters = @($updatedJobParameters)
+        }
+
+		$endPoint = "Dispatcher/SchedulingService/jobs"
+		$uri = "http://$Dispatcher/$($endPoint)"
+		
+		$blob = [pscustomobject]@{
+			Description = $Description
+			When = @{
+			    ScheduledDateTime = $Start
+                Immediate = $Immediate.ToString().ToLower()
+                IsLocalTime = $LocalTime.ToString().ToLower()
+                UseWakeOnLAN = $UseWOL.ToString().ToLower()
+			}
+            What = @(
+                        [pscustomobject]@{
+                            ID = "{$($tgtTask.GUID.ToString().ToUpper())}"
+                            Type = $Type
+                            Name = $tgtTask.Name
+                        }
+                    )
+            Who = @(
+                [pscustomobject]@{
+                    ID = "{$($tgtAgent.WUIDAgent.ToString().ToUpper())}"
+                    Type = 0
+                    Name = $tgtAgent.Name
+                }
+            )
+            Parameters = @($tgtParameters)
+		}
+		$pREST = @{
+			Uri = $Uri
+			Method = "POST"
+			Credential = $Credential
+		}
+		Invoke-ResAMREST @pREST -Body (ConvertTo-Json $blob -Depth 99)
+	}
+}
+
+function Invoke-ResAMREST {
+    [CmdletBinding()]
+	param(
+        [Parameter(Mandatory=$True)]
+	    [string]$Uri,
+        [Parameter(Mandatory=$True)]
+        [ValidateSet("GET","PUT","POST")] 
+	    [string]$Method,
+        [Parameter(Mandatory=$True)]
+	    [System.Management.Automation.PSCredential]$Credential,
+	    [System.Object]$Body
+	)
+	
+	process {
+		$restSplat = @{
+			Uri = $Uri
+			Credential = $Credential
+			Method = $Method
+			ContentType = "application/json"
+			SessionVariable = "Script:ResAMSession"
+		}
+		if($Body){
+			$restSplat.Add("Body",$Body)
+		}
+		
+		Invoke-RestMethod @restSplat
+	}
+}
+
+function Get-ResAMInputParameter {
+    [CmdletBinding()]
+	param(
+    [Parameter(Mandatory=$True)]
+		[String]$Dispatcher,
+    [Parameter(Mandatory=$True)]
+		[System.Management.Automation.PSCredential]$Credential,
+    [Parameter(Mandatory=$True)]
+		[PSObject]$What,
+    [Switch]$Raw = $false
+	)
+	
+	process {
+		$endPoint = "Dispatcher/SchedulingService/what"
+        $Type = $What.PSObject.TypeNames | ?{$_ -like 'RES*'}
+		$uri = "http://$Dispatcher/$($endPoint)/$($Type.Split('.')[-1])s/$($What.GUID)/inputparameters"
+		$pREST = @{
+			Uri = $Uri
+			Method = "GET"
+			Credential = $Credential
+		}
+#
+# Only parameters that are actually used in any of the module tasks will be returned !
+#
+		$result = Invoke-ResAMREST @pREST
+        if($Raw){$result}
+        else{$result.JobParameters}
+	}
 }
