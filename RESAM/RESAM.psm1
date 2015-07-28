@@ -499,6 +499,55 @@ function Invoke-RESAMRestMethod {
 	}
 }
 
+# Retreives only used parameters using the webapi
+function Get-RESAMInputParameter {
+    [CmdletBinding()]
+	param(
+        [Parameter(Mandatory=$True)]
+		[String]
+        $Dispatcher,
+
+        [Parameter(Mandatory=$True)]
+	    $Credential,
+
+        [Parameter(Mandatory=$True,
+                   ValueFromPipeline=$True)]
+		[PSObject]
+        $What,
+
+        [Switch]
+        $Raw = $false
+	)
+	begin
+    {
+        If ($Credential) {
+            Write-Verbose "Processing credentials."
+            $Message = "Please enter RES Automation Manager credentials to connect to the Dispatcher."
+            switch ($Credential.GetType().Name)
+            {
+                'PSCredential' {}
+                'String' {$Credential = Get-Credential $Credential -Message $Message}
+            }
+        }
+    }
+	process {
+		$endPoint = "Dispatcher/SchedulingService/what"
+        $Type = $What.PSObject.TypeNames | ?{$_ -like 'RES*'}
+		$uri = "http://$Dispatcher/$($endPoint)/$($Type.Split('.')[-1])s/$($What.GUID)/inputparameters"
+		$pREST = @{
+			Uri = $Uri
+			Method = "GET"
+			Credential = $Credential
+		}
+#
+# Only parameters that are actually used in any of the module tasks will be returned !
+#
+		$result = Invoke-RESAMRestMethod @pREST
+        if($Raw){$result}
+        else{$result.JobParameters}
+	}
+}
+
 #endregion HelperFunctions
 
 <#
@@ -592,7 +641,7 @@ function Connect-RESAMDatabase
 .DESCRIPTION
     Closes the connection to a RES Automation Manager Database.
 .PARAMETER Connection
-    Name of the SQL datasource to connect to
+    Name of the SQL datasource to connect to.
 .EXAMPLE
     Disconnect-RESAMDatabase
     Closes connection to the currently connected database.
@@ -1768,18 +1817,16 @@ function New-RESAMJob {
 		[String]
         $Description,
 
-		[String]
+		[Parameter(ValueFromPipeline=$true)]
         $Agent,
+
         [Parameter(ParameterSetName='Module')]
-        [String]
         $Module,
 
         [Parameter(ParameterSetName='Project')]
-		[String]
         $Project,
 
         [Parameter(ParameterSetName='RunBook')]
-		[String]
         $RunBook,
 
 		[DateTime]
@@ -1791,8 +1838,8 @@ function New-RESAMJob {
 		[Switch]
         $UseWOL = $false,
 
-		[PSObject]
-        $Parameter
+		[HashTable]
+        $Parameters
 	)
 
     begin
@@ -1806,8 +1853,6 @@ function New-RESAMJob {
                 'String' {$Credential = Get-Credential $Credential -Message $Message}
             }
         }
-    }
-	process {
         If ($Start)
         {
             $Immediate = $false
@@ -1817,39 +1862,153 @@ function New-RESAMJob {
             $Immediate = $True
             $Start = Get-Date
         }
-        if($Module)
+        If ($Module)
         {
-            $tgtTask = Get-ResAMModule $Module
+            IF ($Module.PSObject.TypeNames -contains 'RES.AutomationManager.Module')
+            {
+                $Task = $Module
+            }
+            elseIf ($Module.GetType().Name -eq 'String')
+            {
+                $Task = Get-RESAMModule $Module
+            }
+            else
+            {
+                Throw 'Incorrect object type for Module parameter.'
+            }
             $Type = 0
         }
-        if($Project)
+        If ($Project)
         {
-            $tgtTask = Get-ResAMProject $Project
+            IF ($Project.PSObject.TypeNames -contains 'RES.AutomationManager.Project')
+            {
+                $Task = $Project
+            }
+            elseIf ($Project.GetType().Name -eq 'String')
+            {
+                $Task = Get-RESAMProject $Project
+            }
+            else
+            {
+                Throw 'Incorrect object type for Project parameter.'
+            }
             $Type = 1
         }
-        if($RunBook)
+        If ($RunBook)
         {
-            $tgtTask = Get-ResAMRunBook $RunBook
+            IF ($RunBook.PSObject.TypeNames -contains 'RES.AutomationManager.RunBook')
+            {
+                $Task = $RunBook
+            }
+            elseIf ($RunBook.GetType().Name -eq 'String')
+            {
+                $Task = Get-RESAMProject $RunBook
+            }
+            else
+            {
+                Throw 'Incorrect object type for RunBook parameter.'
+            }
             $Type = 2
         }
-
-        $tgtParameters = Get-ResAMInputParameter -Dispatcher $Dispatcher -Credential $Credential -What $tgtTask -Raw         
-        $tgtAgent = Get-ResAMAgent $Agent
-
-        if($Parameter){
-            $updatedJobParameters = &{
-                foreach($jobParam in $tgtParameters.JobParameters){
-                    $Parameter.GetEnumerator() | %{
-                        if($_.Key -eq $jobParam.Name){
-                            $jobParam.Value1 = $_.Value
-                        }
-                    }
-                    $jobParam
-                } 
-            }
-            $tgtParameters.JobParameters = @($updatedJobParameters)
+        If (!$Description)
+        {
+            $Description = $Task.Name
         }
 
+        $InputParameters = Get-RESAMInputParameter -Dispatcher $Dispatcher -Credential $Credential -What $Task -Raw
+
+        If ($InputParameters)
+        {
+            Write-Verbose 'Required input parameters found.'
+            If ($Parameters)
+            {
+                Write-Verbose 'Setting new parameter values...'
+                foreach ($jobParam in $InputParameters.JobParameters)
+                {
+                    $Parameters.GetEnumerator() | %{
+                        If($_.Key -eq $jobParam.Name)
+                        {
+                            $Value = $_.Value
+                            If ($jobParam.Value2)
+                            {
+                                Write-Verbose 'Testing values...'
+                                $Value.Split(';') | %{
+                                    If ($jobParam.Value2.Split(';') -contains $_)
+                                    {
+                                        Write-Verbose "Value $_ is correct."
+                                    }
+                                    else
+                                    {
+                                        Throw "Incorrect value for parameter '$($jobParam.Name)'! Only the following values are allowed: '$($jobParam.Value2)'"
+                                    }
+                                }    
+                            }
+                            $jobParam.Value1 = $Value
+                        }
+                    }
+                } # end foreach
+                Write-Verbose 'All parameter values have been set.'
+            }
+            else # No Parameters
+            {
+                Write-Verbose 'Prompting for parameter values:'
+                foreach ($jobParam in $InputParameters.JobParameters)
+                {
+                    $Correct = $True
+                    $Value = Read-Host "Please provide value for parameter '$($jobParam.Name)'"
+                    If ($jobParam.Value2)
+                    {
+                        $Value.Split(';') | %{
+                            If ($jobParam.Value2.Split(';') -contains $_ -and $Correct)
+                            {
+                                $Correct = $True
+                            }
+                            else
+                            {
+                                Write-Verbose "Incorrect value found for parameter '$($jobParam.Name)':"
+                                Write-Verbose "Faulty value is $_."
+                                $Correct = $False
+                            }
+                        }
+                        If (!$Correct)
+                        {
+                            Write-Verbose 'Incorrect parameter value(s) found.'
+                            Do {
+                                $Value = Read-Host "Allowed values are '$($jobParam.Value2)'"
+                                $Correct = $True
+                                $Value.Split(';') | %{
+                                    If ($jobParam.Value2.Split(';') -contains $_ -and $Correct)
+                                    {
+                                        $Correct = $True
+                                    }
+                                    else
+                                    {
+                                        $Correct = $False
+                                    }
+                                }
+                            }
+                            until ($Correct)
+                        }
+                    } # end If $jobParam.Value2
+                    $jobParam.Value1 = $Value
+                } # end foreach
+            } # end If-else $Parameters
+        } # end IF $inputparameters
+        $ArrAgents = @()
+    }
+	process {
+        
+        If ($Agent.PSObject.TypeNames -contains 'RES.AutomationManager.Agent')
+        {
+            $ArrAgents += $Agent
+        }
+        else
+        {
+            $ArrAgents += (Get-RESAMAgent $Agent)
+        }
+    }
+    End
+    {
 		$endPoint = "Dispatcher/SchedulingService/jobs"
 		$uri = "http://$Dispatcher/$($endPoint)"
 		
@@ -1863,19 +2022,22 @@ function New-RESAMJob {
 			}
             What = @(
                         [pscustomobject]@{
-                            ID = "{$($tgtTask.GUID.ToString().ToUpper())}"
+                            ID = "{$($Task.GUID.ToString().ToUpper())}"
                             Type = $Type
-                            Name = $tgtTask.Name
+                            Name = $Task.Name
                         }
                     )
             Who = @(
-                [pscustomobject]@{
-                    ID = "{$($tgtAgent.WUIDAgent.ToString().ToUpper())}"
-                    Type = 0
-                    Name = $tgtAgent.Name
+                foreach ($AMAgent in $arrAgents)
+                {
+                        [pscustomobject]@{
+                            ID = "{$($amAgent.WUIDAgent.ToString().ToUpper())}"
+                            Type = 0
+                            Name = $AMAgent.Name
+                        }
                 }
             )
-            Parameters = @($tgtParameters)
+            Parameters = @($InputParameters)
 		}
 		$pREST = @{
 			Uri = $Uri
@@ -1886,50 +2048,3 @@ function New-RESAMJob {
 	}
 }
 
-function Get-RESAMInputParameter {
-    [CmdletBinding()]
-	param(
-        [Parameter(Mandatory=$True)]
-		[String]
-        $Dispatcher,
-
-        [Parameter(Mandatory=$True)]
-	    $Credential,
-
-        [Parameter(Mandatory=$True,
-                   ValueFromPipeline=$True)]
-		[PSObject]
-        $What,
-
-        [Switch]
-        $Raw = $false
-	)
-	begin
-    {
-        If ($Credential) {
-            Write-Verbose "Processing credentials."
-            $Message = "Please enter RES Automation Manager credentials to connect to the Dispatcher."
-            switch ($Credential.GetType().Name)
-            {
-                'PSCredential' {}
-                'String' {$Credential = Get-Credential $Credential -Message $Message}
-            }
-        }
-    }
-	process {
-		$endPoint = "Dispatcher/SchedulingService/what"
-        $Type = $What.PSObject.TypeNames | ?{$_ -like 'RES*'}
-		$uri = "http://$Dispatcher/$($endPoint)/$($Type.Split('.')[-1])s/$($What.GUID)/inputparameters"
-		$pREST = @{
-			Uri = $Uri
-			Method = "GET"
-			Credential = $Credential
-		}
-#
-# Only parameters that are actually used in any of the module tasks will be returned !
-#
-		$result = Invoke-RESAMRestMethod @pREST
-        if($Raw){$result}
-        else{$result.JobParameters}
-	}
-}
