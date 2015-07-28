@@ -144,7 +144,138 @@
 		</GetScriptBlock>
 	  </ScriptProperty>
 	  <ScriptProperty>
+		<Name>RequiredParameters</Name>
+		<GetScriptBlock>
+			If ($this.Tasks.tasks.task)
+			{
+				$this.Tasks.tasks.task.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
 		<Name>ModuleGUID</Name>
+		<GetScriptBlock>$this.GUID</GetScriptBlock>
+	  </ScriptProperty>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.Project</Name>
+    <Members>
+      <MemberSet>
+        <Name>PsStandardMembers</Name>
+        <Members>
+          <NoteProperty>
+            <Name>DefaultDisplayProperty</Name>
+            <Value>Project</Value>
+          </NoteProperty>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+              <Name>GUID</Name>
+			  <Name>Enabled</Name>
+              <Name>FolderName</Name>
+            </ReferencedProperties>
+          </PropertySet>
+          <PropertySet>
+            <Name>DefaultKeyPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+	  <ScriptProperty>
+		<Name>Parameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties.parameters)
+			{
+				$this.Properties.properties.parameters.param
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>RequiredParameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties.parameters)
+			{
+				$this.Properties.properties.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>ProjectGUID</Name>
+		<GetScriptBlock>$this.GUID</GetScriptBlock>
+	  </ScriptProperty>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.RunBook</Name>
+    <Members>
+      <MemberSet>
+        <Name>PsStandardMembers</Name>
+        <Members>
+          <NoteProperty>
+            <Name>DefaultDisplayProperty</Name>
+            <Value>RunBook</Value>
+          </NoteProperty>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+              <Name>GUID</Name>
+			  <Name>Enabled</Name>
+              <Name>FolderName</Name>
+            </ReferencedProperties>
+          </PropertySet>
+          <PropertySet>
+            <Name>DefaultKeyPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+	  <ScriptProperty>
+		<Name>Parameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties.parameters)
+			{
+				$this.Properties.properties.parameters.param
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>RequiredParameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties.parameters)
+			{
+				$this.Properties.properties.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>RunBookGUID</Name>
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
 	  </ScriptProperty>
     </Members>
