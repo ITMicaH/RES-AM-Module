@@ -2150,11 +2150,15 @@ function Get-RESAMLog
     Use local time (Default).
 .PARAMETER UseWOL
     Use Wake-on-LAN when the job starts.
+.PARAMETER UseDefaults
+    Use the default values for all required parameters. Cannot be used in combination
+    with the Parameters parameter.
 .PARAMETER Parameters
     A hashtable of required parameters for the job. When omitted the user
     will be prompted for required parameter values. You can find the required
     parameters by using the RequiredParameters property on the module, project
-    or runbook you're scheduling.
+    or runbook you're scheduling. Cannot be used in combination with the 
+    UseDefaults parameter.
 .EXAMPLE
     New-RESAMJob -Dispatcher SRV-DISP-001 -Credential APIUser -Description 'New Test Job' -Who PC1234,PC5678 -Module 'Test Module'
     Schedules the module 'Test Module' to run immediately on agent 'PC1234' and
@@ -2165,6 +2169,12 @@ function Get-RESAMLog
     Schedules the project 'Test Project' to run in an hour on all agents
     using dispatcher 'SRV-DISP-001' with a credential object saved in a variable.
     Required parameter 'Param1' is set with value 'TEST'.
+.EXAMPLE
+    Get-RESAMAgent NB* | New-RESAMJob -Dispatcher SRV-DISP-001 -Credential $Cred -RunBook $Runbook -Start 11:00PM -UseDefaults
+    Schedules the runbook object in variable $runbook to run at 11:00PM today
+    using dispatcher 'SRV-DISP-001' with a credential object saved in a variable.
+    The description will be set to the name of the runbook and all required 
+    parameters will be set with default values.
 .NOTES
     Author        : Michaja van der Zouwen
     Version       : 1.0
@@ -2206,12 +2216,19 @@ function New-RESAMJob {
 		[Switch]
         $UseWOL,
 
+        [Switch]
+        $UseDefaults,
+
 		[HashTable]
         $Parameters
 	)
 
     begin
     {
+        If ($UseDefaults -and $Parameters)
+        {
+            throw "Illegal operation! You cannot use '-UseDefaults' and '-Parameters' together in a single command."
+        }
         If ($Credential) {
             Write-Verbose "Processing credentials."
             $Message = "Please enter RES Automation Manager credentials to connect to the Dispatcher."
@@ -2317,7 +2334,7 @@ function New-RESAMJob {
                 } # end foreach
                 Write-Verbose 'All parameter values have been set.'
             }
-            else # No Parameters
+            elseif (!$UseDefaults) # No Parameters
             {
                 Write-Verbose 'Prompting for parameter values:'
                 foreach ($jobParam in $InputParameters.JobParameters)
