@@ -80,38 +80,6 @@
     </ListControl>
   </View>
   <View>
-    <Name>RES.AutomationManager.Module</Name>
-    <ViewSelectedBy>
-      <TypeName>RES.AutomationManager.Module</TypeName>
-    </ViewSelectedBy>
-    <ListControl>
-      <ListEntries>
-        <ListEntry>
-          <ListItems>
-            <ListItem>
-              <PropertyName>Name</PropertyName>
-            </ListItem>
-            <ListItem>
-              <PropertyName>GUID</PropertyName>
-            </ListItem>
-            <ListItem>
-              <PropertyName>Enabled</PropertyName>
-            </ListItem>
-            <ListItem>
-              <PropertyName>Description</PropertyName>
-            </ListItem>
-			<ListItem>
-              <PropertyName>Parameters</PropertyName>
-            </ListItem>
-			<ListItem>
-              <PropertyName>FolderName</PropertyName>
-            </ListItem>
-          </ListItems>
-        </ListEntry>
-      </ListEntries>
-    </ListControl>
-  </View>
-  <View>
     <Name>RES.AutomationManager.MasterJob</Name>
     <ViewSelectedBy>
       <TypeName>RES.AutomationManager.MasterJob</TypeName>
