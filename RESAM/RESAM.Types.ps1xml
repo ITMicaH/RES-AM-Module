@@ -135,7 +135,85 @@
 		<GetScriptBlock>
 			If ($this.Tasks.tasks.task)
 			{
-				$this.Tasks.tasks.task.parameters.param
+				$this.Tasks.tasks.task.parameters.param | %{
+					switch ($_.Type)
+					{
+						0 {$Type = 'Text'}
+						1 {$Type = 'List'}
+						2 {$Type = 'Credentials'}
+						3 {$Type = 'Multi-Select List'}
+						4 {$Type = 'Multi-Line Text'}
+						5 {$Type = 'Password'}
+					}
+					$ListItems = @()
+					$Items = $_.value2.Split(';')
+					$Descr = $_.value3.Split(';')
+                    If ($Items)
+                    {
+					    for ($i = 0; $i -lt $Items.Count; $i++)
+					    {
+                            $Item = [pscustomobject]@{
+                                Value = $Items[$i]
+                                Description = $Descr[$i]
+                            }
+						    $ListItems += $Item
+					    }
+                    }
+					[pscustomobject]@{
+						Name = $_.name
+						Description = $_.description
+						Hint = $_.hint
+						Type = $Type
+						Default = $_.value1
+						ListItems = $ListItems
+					}
+				}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>RequiredParameters</Name>
+		<GetScriptBlock>
+			If ($this.Tasks.tasks.task)
+			{
+				$Required = $this.Tasks.tasks.task.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
+				$Required | %{
+					switch ($_.Type)
+					{
+						0 {$Type = 'Text'}
+						1 {$Type = 'List'}
+						2 {$Type = 'Credentials'}
+						3 {$Type = 'Multi-Select List'}
+						4 {$Type = 'Multi-Line Text'}
+						5 {$Type = 'Password'}
+					}
+					$ListItems = @()
+					$Items = $_.value2.Split(';')
+					$Descr = $_.value3.Split(';')
+                    If ($Items)
+                    {
+					    for ($i = 0; $i -lt $Items.Count; $i++)
+					    {
+                            $Item = [pscustomobject]@{
+                                Value = $Items[$i]
+                                Description = $Descr[$i]
+                            }
+						    $ListItems += $Item
+					    }
+                    }
+					[pscustomobject]@{
+						Name = $_.name
+						Description = $_.description
+						Hint = $_.hint
+						Type = $Type
+						Default = $_.value1
+						ListItems = $ListItems
+					}
+				}
 			}
 			else
 			{
@@ -145,6 +223,254 @@
 	  </ScriptProperty>
 	  <ScriptProperty>
 		<Name>ModuleGUID</Name>
+		<GetScriptBlock>$this.GUID</GetScriptBlock>
+	  </ScriptProperty>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.Project</Name>
+    <Members>
+      <MemberSet>
+        <Name>PsStandardMembers</Name>
+        <Members>
+          <NoteProperty>
+            <Name>DefaultDisplayProperty</Name>
+            <Value>Project</Value>
+          </NoteProperty>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+              <Name>GUID</Name>
+			  <Name>Enabled</Name>
+              <Name>FolderName</Name>
+            </ReferencedProperties>
+          </PropertySet>
+          <PropertySet>
+            <Name>DefaultKeyPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+	  <ScriptProperty>
+		<Name>Parameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties.parameters)
+			{
+				$this.Properties.properties.parameters.param| %{
+					switch ($_.Type)
+					{
+						0 {$Type = 'Text'}
+						1 {$Type = 'List'}
+						2 {$Type = 'Credentials'}
+						3 {$Type = 'Multi-Select List'}
+						4 {$Type = 'Multi-Line Text'}
+						5 {$Type = 'Password'}
+					}
+					$ListItems = @()
+					$Items = $_.value2.Split(';')
+					$Descr = $_.value3.Split(';')
+                    If ($Items)
+                    {
+					    for ($i = 0; $i -lt $Items.Count; $i++)
+					    {
+                            $Item = [pscustomobject]@{
+                                Value = $Items[$i]
+                                Description = $Descr[$i]
+                            }
+						    $ListItems += $Item
+					    }
+                    }
+					[pscustomobject]@{
+						Name = $_.name
+						Description = $_.description
+						Hint = $_.hint
+						Type = $Type
+						Default = $_.value1
+						ListItems = $ListItems
+					}
+				}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>RequiredParameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties.parameters)
+			{
+				$Required = $this.Properties.properties.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
+				$Required | %{
+					switch ($_.Type)
+					{
+						0 {$Type = 'Text'}
+						1 {$Type = 'List'}
+						2 {$Type = 'Credentials'}
+						3 {$Type = 'Multi-Select List'}
+						4 {$Type = 'Multi-Line Text'}
+						5 {$Type = 'Password'}
+					}
+					$ListItems = @()
+					$Items = $_.value2.Split(';')
+					$Descr = $_.value3.Split(';')
+                    If ($Items)
+                    {
+					    for ($i = 0; $i -lt $Items.Count; $i++)
+					    {
+                            $Item = [pscustomobject]@{
+                                Value = $Items[$i]
+                                Description = $Descr[$i]
+                            }
+						    $ListItems += $Item
+					    }
+                    }
+					[pscustomobject]@{
+						Name = $_.name
+						Description = $_.description
+						Hint = $_.hint
+						Type = $Type
+						Default = $_.value1
+						ListItems = $ListItems
+					}
+				}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>ProjectGUID</Name>
+		<GetScriptBlock>$this.GUID</GetScriptBlock>
+	  </ScriptProperty>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.RunBook</Name>
+    <Members>
+      <MemberSet>
+        <Name>PsStandardMembers</Name>
+        <Members>
+          <NoteProperty>
+            <Name>DefaultDisplayProperty</Name>
+            <Value>RunBook</Value>
+          </NoteProperty>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+              <Name>GUID</Name>
+			  <Name>Enabled</Name>
+              <Name>FolderName</Name>
+            </ReferencedProperties>
+          </PropertySet>
+          <PropertySet>
+            <Name>DefaultKeyPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+	  <ScriptProperty>
+		<Name>Parameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties.parameters)
+			{
+				$this.Properties.properties.parameters.param | %{
+					switch ($_.Type)
+					{
+						0 {$Type = 'Text'}
+						1 {$Type = 'List'}
+						2 {$Type = 'Credentials'}
+						3 {$Type = 'Multi-Select List'}
+						4 {$Type = 'Multi-Line Text'}
+						5 {$Type = 'Password'}
+					}
+					$ListItems = @()
+					$Items = $_.value2.Split(';')
+					$Descr = $_.value3.Split(';')
+                    If ($Items)
+                    {
+					    for ($i = 0; $i -lt $Items.Count; $i++)
+					    {
+                            $Item = [pscustomobject]@{
+                                Value = $Items[$i]
+                                Description = $Descr[$i]
+                            }
+						    $ListItems += $Item
+					    }
+                    }
+					[pscustomobject]@{
+						Name = $_.name
+						Description = $_.description
+						Hint = $_.hint
+						Type = $Type
+						Default = $_.value1
+						ListItems = $ListItems
+					}
+				}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>RequiredParameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties.parameters)
+			{
+				$Required = $this.Properties.properties.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
+				$Required | %{
+					switch ($_.Type)
+					{
+						0 {$Type = 'Text'}
+						1 {$Type = 'List'}
+						2 {$Type = 'Credentials'}
+						3 {$Type = 'Multi-Select List'}
+						4 {$Type = 'Multi-Line Text'}
+						5 {$Type = 'Password'}
+					}
+					$ListItems = @()
+					$Items = $_.value2.Split(';')
+					$Descr = $_.value3.Split(';')
+                    If ($Items)
+                    {
+					    for ($i = 0; $i -lt $Items.Count; $i++)
+					    {
+                            $Item = [pscustomobject]@{
+                                Value = $Items[$i]
+                                Description = $Descr[$i]
+                            }
+						    $ListItems += $Item
+					    }
+                    }
+					[pscustomobject]@{
+						Name = $_.name
+						Description = $_.description
+						Hint = $_.hint
+						Type = $Type
+						Default = $_.value1
+						ListItems = $ListItems
+					}
+				}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>RunBookGUID</Name>
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
 	  </ScriptProperty>
     </Members>
