@@ -198,6 +198,40 @@ function ConvertFrom-ByteArray
     Write-Verbose "Finished processing array."
 }
 
+# Get RES Automation Manager folder objects.
+function Get-RESAMFolder
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 0)]
+        [string]
+        $Name,
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 1)]
+        [Alias('FolderGUID')]
+        [guid]
+        $GUID
+    )
+    process
+    {
+        If ($GUID)
+        {
+            $Query = "select * from dbo.tblFolders WHERE FolderGUID = '$($GUID.tostring())'"
+        }
+        elseif ($Name)
+        {
+            $Query = "select * from dbo.tblFolders WHERE strName LIKE '$($Name.replace('*','%'))'"
+        }
+        else
+        {
+            $Query = "select * from dbo.tblFolders"
+        }
+
+        Invoke-SQLQuery $Query -Type Folder | Optimize-RESAMFolder
+    }
+}
+
 # Translates a folder guid to a name and adds the name to an object.
 function Add-RESAMFolderName
 {
@@ -677,7 +711,7 @@ function Disconnect-RESAMDatabase
     Get RES Automation Manager Agent objects from the RES Automation 
     Manager Database.
 .PARAMETER Name
-    Name of the Agent.
+    Name of the Agent. Wildcards are allowed.
 .PARAMETER GUID
     GUID of the Agent.
 .PARAMETER Team
@@ -745,7 +779,7 @@ function Get-RESAMAgent
 
         [Parameter(ParameterSetName='Default')]
         [switch]
-        $Full = $false,
+        $Full,
 
         [Parameter(ParameterSetName='Duplicates')]
         [switch]
@@ -846,7 +880,7 @@ function Get-RESAMTeam
         $Agent,
 
         [switch]
-        $Full = $false
+        $Full
     )
     process
     {
@@ -954,19 +988,15 @@ function Get-RESAMAudit
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='Default')]
         [int]
-        $Last
+        $Last = 1000
     )
     begin
     {
-        If ($Last)
+        If ($Last -eq 1000 -and !$StartDate -and !$EndDate)
         {
-            $LastNr = "TOP $Last"
+            Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
-        elseif (!$StartDate -and !$EndDate)
-        {
-            $LastNr = "TOP 1000"
-            Write-Warning "Only the last 1000 audits will be displayed. If more are required use the '-Last' parameter."
-        }
+        $LastNr = "TOP $Last"
     }
     process
     {
@@ -1020,7 +1050,29 @@ strComputerMAC from dbo.tblAudits"
     }
 }
 
-
+<#
+.Synopsis
+    Get RES Automation Manager Dispatcher objects.
+.DESCRIPTION
+    Get RES Automation Manager Dispatcher objects from the RES Automation 
+    Manager Database.
+.PARAMETER Name
+    Name of the Dispatcher. Wildcards are allowed.
+.PARAMETER GUID
+    GUID of the Dispatcher.
+.PARAMETER Full
+    Retreive full information (Adapter information etc.).
+.EXAMPLE
+    Get-RESAMDispatcher -Name SRV-DISP-*
+    Displays information on RES Automation Manager dispatchers
+    whose names start with 'SRV-DISP-'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMDispatcher
 {
     [CmdletBinding()]
@@ -1036,7 +1088,7 @@ function Get-RESAMDispatcher
         $GUID,
 
         [switch]
-        $Full = $false
+        $Full
     )
     process
     {
@@ -1057,39 +1109,32 @@ function Get-RESAMDispatcher
     }
 }
 
-function Get-RESAMFolder
-{
-    [CmdletBinding()]
-    param (
-        [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 0)]
-        [string]
-        $Name,
-        [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 1)]
-        [Alias('FolderGUID')]
-        [guid]
-        $GUID
-    )
-    process
-    {
-        If ($GUID)
-        {
-            $Query = "select * from dbo.tblFolders WHERE FolderGUID = '$($GUID.tostring())'"
-        }
-        elseif ($Name)
-        {
-            $Query = "select * from dbo.tblFolders WHERE strName LIKE '$($Name.replace('*','%'))'"
-        }
-        else
-        {
-            $Query = "select * from dbo.tblFolders"
-        }
-
-        Invoke-SQLQuery $Query -Type Folder | Optimize-RESAMFolder
-    }
-}
-
+<#
+.Synopsis
+    Get RES Automation Manager Module objects.
+.DESCRIPTION
+    Get RES Automation Manager Module objects from the RES Automation 
+    Manager Database.
+.PARAMETER Name
+    Name of the Module. Wildcards are allowed.
+.PARAMETER GUID
+    GUID of the Module.
+.PARAMETER Full
+    Retreive full information (Parameter information etc.).
+.EXAMPLE
+    Get-RESAMModule -Name '*WSUS*'
+    Displays default information on RES Automation Manager Modules 
+    that have 'WSUS' in the name.
+.EXAMPLE
+    Get-RESAMModule -Name 'Get PC Info' -Full
+    Displays full information on RES Automation Manager Module 'Get PC Info'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMModule
 {
     [CmdletBinding()]
@@ -1106,7 +1151,7 @@ function Get-RESAMModule
         $GUID,
 
         [switch]
-        $Full = $false
+        $Full
     )
     process
     {
@@ -1129,6 +1174,32 @@ function Get-RESAMModule
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager Project objects.
+.DESCRIPTION
+    Get RES Automation Manager Project objects from the RES Automation 
+    Manager Database.
+.PARAMETER Name
+    Name of the Project. Wildcards are allowed.
+.PARAMETER GUID
+    GUID of the Project.
+.PARAMETER Full
+    Retreive full information (Parameter information etc.).
+.EXAMPLE
+    Get-RESAMProject -Name *User*
+    Displays default information on RES Automation Manager Projects
+    whose names contain the word 'User'.
+.EXAMPLE
+    Get-RESAMProject -Name 'Install WSUS patches' -Full
+    Displays full information on RES Automation Manager Project 'Install WSUS patches'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMProject
 {
     [CmdletBinding()]
@@ -1145,7 +1216,7 @@ function Get-RESAMProject
         $GUID,
 
         [switch]
-        $Full = $False
+        $Full
     )
     process
     {
@@ -1168,6 +1239,32 @@ function Get-RESAMProject
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager RunBook objects.
+.DESCRIPTION
+    Get RES Automation Manager RunBook objects from the RES Automation 
+    Manager Database.
+.PARAMETER Name
+    Name of the RunBook. Wildcards are allowed.
+.PARAMETER GUID
+    GUID of the RunBook.
+.PARAMETER Full
+    Retreive full information (Parameter information etc.).
+.EXAMPLE
+    Get-RESAMRunBook -Name Execute*
+    Displays default information on RES Automation Manager RunBooks
+    whose names start with 'Execute'.
+.EXAMPLE
+    Get-RESAMRunBook -Name 'Deploy standard software' -Full
+    Displays full information on RES Automation Manager RunBook 'Deploy standard software'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMRunBook
 {
     [CmdletBinding()]
@@ -1185,7 +1282,7 @@ function Get-RESAMRunBook
         $GUID,
 
         [switch]
-        $Full = $False
+        $Full
     )
     process
     {
@@ -1208,20 +1305,48 @@ function Get-RESAMRunBook
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager Resource objects.
+.DESCRIPTION
+    Get RES Automation Manager Resource objects from the RES Automation 
+    Manager Database.
+.PARAMETER Name
+    Name of the Resource. Wildcards are allowed.
+.PARAMETER GUID
+    GUID of the Resource.
+.PARAMETER Full
+    Retreive full information (Type information etc.).
+.EXAMPLE
+    Get-RESAMResource -Name *.msi
+    Displays default information on RES Automation Manager Resources that are MSI's.
+.EXAMPLE
+    Get-RESAMResource -Name 'RESWM2014.exe' -Full
+    Displays full information on RES Automation Manager Resource 'RESWM2014.exe'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMResource
 {
     [CmdletBinding()]
     param (
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 0)]
-        [Alias('strProductName')]
+        [Alias('strFileName')]
         [string]
         $Name,
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
         [guid]
-        $GUID
+        $GUID,
+
+        [Switch]
+        $Full
     )
     process
     {
@@ -1233,17 +1358,44 @@ function Get-RESAMResource
         Elseif ($Name)
         {
             Write-Verbose "Running query based on name $Name."
-            $Query = "select * from dbo.tblResources WHERE strProductName LIKE '$($Name.replace('*','%'))'"
+            $Query = "select * from dbo.tblResources WHERE strFileName LIKE '$($Name.replace('*','%'))'"
         }
         else
         {
             $Query = "select * from dbo.tblResources"
         }
 
-        Invoke-SQLQuery $Query -Type Resource | Add-RESAMFolderName
+        Invoke-SQLQuery $Query -Type Resource -Full:$Full | Add-RESAMFolderName
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager Connector objects.
+.DESCRIPTION
+    Get RES Automation Manager Connector objects from the RES Automation 
+    Manager Database.
+.PARAMETER Target
+    Name of the host that hosts the connector. Wildcards are allowed.
+.PARAMETER GUID
+    GUID of the Connector.
+.PARAMETER Type
+    Type of the Connector.
+.EXAMPLE
+    Get-RESAMConnector -Target *exc*
+    Displays default information on RES Automation Manager Connectors
+    whose target names contain 'exc'.
+.EXAMPLE
+    Get-RESAMConnector -Type RemoteHosts
+    Displays information on RES Automation Manager Connectors of the
+    'Remote Host' type (e.g. Secure Shell).
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMConnector
 {
     [CmdletBinding()]
@@ -1261,7 +1413,7 @@ function Get-RESAMConnector
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 2)]
-        [ValidateSet('Exchange','ActiveDirectory','SecureShell')]
+        [ValidateSet('DataBase','Virtualization','Mail','Directory','RemoteHosts','SmallBusiness')]
         [string]
         $Type
     )
@@ -1304,6 +1456,29 @@ function Get-RESAMConnector
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager Console objects.
+.DESCRIPTION
+    Get RES Automation Manager Console objects from the RES Automation 
+    Manager Database.
+.PARAMETER Name
+    Name of the host where a console is installed. Wildcards are allowed.
+.PARAMETER GUID
+    GUID of the Console.
+.PARAMETER Full
+    Retreive full information (Adapter information etc.).
+.EXAMPLE
+    Get-RESAMConsole -Name SRV-*
+    Displays information on RES Automation Manager Consoles
+    whose names start with 'SRV'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMConsole
 {
     [CmdletBinding()]
@@ -1317,7 +1492,10 @@ function Get-RESAMConsole
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
         [guid]
-        $GUID
+        $GUID,
+
+        [switch]
+        $Full
     )
     process
     {
@@ -1336,7 +1514,7 @@ function Get-RESAMConsole
             $Query = "select * from dbo.tblConsoles"
         }
 
-        Invoke-SQLQuery $Query -Type Console | %{
+        Invoke-SQLQuery $Query -Type Console -Full:$Full | %{
             $Console = $_
             switch ($Console.SystemType)
             {
@@ -1348,6 +1526,22 @@ function Get-RESAMConsole
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager Database level.
+.DESCRIPTION
+    Get RES Automation Manager Database level from the RES Automation 
+    Manager Database.
+.EXAMPLE
+    $DBLevel = Get-RESAMDatabaseLevel
+    Stores the data base level in a variable called 'DBLevel'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMDatabaseLevel
 {
     [CmdletBinding()]
@@ -1361,6 +1555,55 @@ function Get-RESAMDatabaseLevel
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager MasterJob objects.
+.DESCRIPTION
+    Get RES Automation Manager MasterJob objects from the RES Automation 
+    Manager Database. A MasterJob is a scheduled Module, Project or Runbook.
+.PARAMETER Description
+    Description of the MasterJob. Wildcards are allowed.
+.PARAMETER GUID
+    GUID of the MasterJob.
+.PARAMETER Who
+    The Team(s) or Agent(s) the job was scheduled on.
+.PARAMETER ModuleGUID
+    The GUID of the Module, Project or Runbook that was scheduled.
+.PARAMETER Status
+    Only returns MasterJobs that are in a certain state.
+.PARAMETER InvokedByRunbook
+    By default only main MasterJobs are returned. These are the
+    jobs as shown in the console. With this parameter you can
+    query jobs that were invoked by a runbook. In the console 
+    these can be found by opening a runbook job and clicking the 
+    'Jobs' tab.
+.PARAMETER Last
+    By default only the last 1000 jobs will be returned. If more
+    are required use this parameter to specify the correct amount.
+.PARAMETER Full
+    Retreive full information (Task information etc.).
+.EXAMPLE
+    Get-RESAMMasterJob -Description Create*
+    Displays information on RES Automation Manager MasterJobs
+    whose descriptions start with 'Create'.
+.EXAMPLE
+    Get-RESAMMasterJob -Who 'Win7-Clients'
+    Displays information on RES Automation Manager MasterJobs where
+    the targets contained the 'Win7-Clients' team.
+.EXAMPLE
+    Get-RESAMMasterJob -Status Scheduled -Full
+    Display full information on all MasterJobs with status 'Scheduled'.
+.EXAMPLE
+    Get-RESAMMasterJob -Description 'A worthy Runbook' -InvokedByRunbook -Last 20
+    Display basic information on the last 20 Masterjobs that were 
+    invoked by a RunBook with a description of 'A worthy Runbook'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMMasterJob
 {
     [CmdletBinding()]
@@ -1389,41 +1632,46 @@ function Get-RESAMMasterJob
         [guid]
         $ModuleGUID,
         
-        [switch]
-        $Scheduled,
-
-        [switch]
-        $Active,
+        [Parameter(ValueFromPipelineByPropertyName=$false)]
+        [ValidateSet('On Hold',
+                    'Scheduled',
+                    'Active',
+                    'Aborting',
+                    'Aborted',
+                    'Completed',
+                    'Failed',
+                    'Failed Halted',
+                    'Cancelled',
+                    'Completed with Errors',
+                    'Skipped')]
+        [string]
+        $Status,
 
         [switch]
         $InvokedByRunbook,
 
         [int]
-        $Last,
+        $Last = 1000,
 
         [switch]
-        $Full = $false
+        $Full
     )
     begin
     {
-        If ($Last)
+        If ($Last -eq 1000)
         {
-            $LastNr = "TOP $Last"
-        }
-        else
-        {
-            $LastNr = "TOP 1000"
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
+        $LastNr = "TOP $Last"
     }
     process
     {
         $Filter = @()
-        If ($Scheduled)
-        {
-            $Filter += "(lngStatus = 0 OR lngStatus = -1)"
-            $Filter += "RecurringJobGUID IS NULL"
-        }
+        #If ($Scheduled)
+        #{
+        #    $Filter += "(lngStatus = 0 OR lngStatus = -1)"
+        #    $Filter += "RecurringJobGUID IS NULL"
+        #}
         If ($ModuleGUID)
         {
             $Filter += "ModuleGUID = '$ModuleGUID'"
@@ -1454,9 +1702,23 @@ function Get-RESAMMasterJob
             }
             $Filter += "strWho LIKE '$($Who.Replace('*','%'))'"
         }
-        If ($Active)
+        If ($Status)
         {
-            $Filter += "lngStatus = 1"
+            switch ($Status)
+            {
+                'On Hold'               {$StatusNr = -1}
+                'Scheduled'             {$StatusNr = 0}
+                'Active'                {$StatusNr = 1}
+                'Aborting'              {$StatusNr = 2}
+                'Aborted'               {$StatusNr = 3}
+                'Completed'             {$StatusNr = 4}
+                'Failed'                {$StatusNr = 5}
+                'Failed Halted'         {$StatusNr = 6}
+                'Cancelled'             {$StatusNr = 7}
+                'Completed with Errors' {$StatusNr = 8}
+                'Skipped'               {$StatusNr = 9}
+            }
+            $Filter += "lngStatus = $StatusNr"
         }
 
         $Query = "select $LastNr * from dbo.tblMasterJob"
@@ -1510,22 +1772,18 @@ function Get-RESAMJobTask
         $IncludeChildJobs,
 
         [int]
-        $Last,
+        $Last = 1000,
 
         [switch]
-        $Full = $false
+        $Full
     )
     begin
     {
-        If ($Last)
+        If ($Last -eq 1000)
         {
-            $LastNr = "TOP $Last"
-        }
-        else
-        {
-            $LastNr = "TOP 1000"
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
+        $LastNr = "TOP $Last"
     }
     process
     {
@@ -1579,6 +1837,44 @@ function Get-RESAMJobTask
 }
 #>
 
+<#
+.Synopsis
+    Get RES Automation Manager Job objects.
+.DESCRIPTION
+    Get RES Automation Manager Job objects from the RES Automation 
+    Manager Database. A Job is a child to the MasterJob and contains
+    the tasks run by the MasterJob per agent.
+.PARAMETER Agent
+    An agent a job has been scheduled to. Wildcards are allowed.
+.PARAMETER MasterJobGUID
+    GUID of the MasterJob you wish to view the childjobs of.
+.PARAMETER JobGUID
+    The GUID of the job itself.
+.PARAMETER Status
+    Returns jobs with a certain status.
+.PARAMETER Last
+    By default only the last 1000 jobs will be returned. If more
+    are required use this parameter to specify the correct amount.
+.PARAMETER Full
+    Retreive full information (Task information etc.).
+.EXAMPLE
+    Get-RESAMMasterJob -Description Create* | Get-RESAMJob
+    Displays information on RES Automation Manager Jobs of the
+    MasterJobs whose descriptions start with 'Create'.
+.EXAMPLE
+    Get-RESAMMasterJob -Description 'Start Services' | Get-RESAMJob -Status Active
+    Displays information on RES Automation Manager Jobs of 
+    MasterJob 'Start Services' that are currently active.
+.EXAMPLE
+    Get-RESAMJob -Agent PC1234 -Full -Last 10
+    Display full information on the last 10 Jobs that ran on agent 'PC1234'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMJob
 {
     [CmdletBinding()]
@@ -1616,22 +1912,18 @@ function Get-RESAMJob
         $Status,
 
         [int]
-        $Last,
+        $Last = 1000,
 
         [switch]
-        $Full = $false
+        $Full
     )
     begin
     {
-        If ($Last)
+        If ($Last -eq 1000)
         {
-            $LastNr = "TOP $Last"
-        }
-        else
-        {
-            $LastNr = "TOP 1000"
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
+        $LastNr = "TOP $Last"
     }
     process
     {
@@ -1665,19 +1957,19 @@ function Get-RESAMJob
         {
             switch ($Status)
             {
-                'On Hold'               {$Status = -1}
-                'Scheduled'             {$Status = 0}
-                'Active'                {$Status = 1}
-                'Aborting'              {$Status = 2}
-                'Aborted'               {$Status = 3}
-                'Completed'             {$Status = 4}
-                'Failed'                {$Status = 5}
-                'Failed Halted'         {$Status = 6}
-                'Cancelled'             {$Status = 7}
-                'Completed with Errors' {$Status = 8}
-                'Skipped'               {$Status = 9}
+                'On Hold'               {$StatusNr = -1}
+                'Scheduled'             {$StatusNr = 0}
+                'Active'                {$StatusNr = 1}
+                'Aborting'              {$StatusNr = 2}
+                'Aborted'               {$StatusNr = 3}
+                'Completed'             {$StatusNr = 4}
+                'Failed'                {$StatusNr = 5}
+                'Failed Halted'         {$StatusNr = 6}
+                'Cancelled'             {$StatusNr = 7}
+                'Completed with Errors' {$StatusNr = 8}
+                'Skipped'               {$StatusNr = 9}
             }
-            $Filter += "lngStatus = $Status"
+            $Filter += "lngStatus = $StatusNr"
         }
 
         $Query = "select $LastNr * from dbo.tblJobs"
@@ -1692,6 +1984,34 @@ function Get-RESAMJob
     }
 }
 
+<#
+.Synopsis
+    Get RES Automation Manager query results.
+.DESCRIPTION
+    Get RES Automation Manager query results from the RES Automation 
+    Manager Database. A query is a module task of the 'Query' type. 
+.PARAMETER Agent
+    An agent a query has been scheduled to. Wildcards are allowed.
+.PARAMETER GUID
+    The GUID of the query itself.
+.PARAMETER MasterJobGUID
+    GUID of the MasterJob you wish to view the query results of.
+.PARAMETER Last
+    By default only the last 1000 jobs will be returned. If more
+    are required use this parameter to specify the correct amount.
+.EXAMPLE
+    Get-RESAMMasterJob -Description 'Query Services' | Get-RESAMQueryResult
+    Displays the result of the MasterJobs whose description is 'Query Services'.
+.EXAMPLE
+    Get-RESAMQueryResult -Agent PC1234 -Last 50
+    Displays the last 50 query results on agent PC1234.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function Get-RESAMQueryResult
 {
     [CmdletBinding()]
@@ -1714,19 +2034,15 @@ function Get-RESAMQueryResult
         $MasterJobGUID,
 
         [int]
-        $Last
+        $Last = 1000
     )
     begin
     {
-        If ($Last)
+        If ($Last -eq 1000)
         {
-            $LastNr = "TOP $Last"
-        }
-        else
-        {
-            $LastNr = "TOP 1000"
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
+        $LastNr = "TOP $Last"
     }
     process
     {
@@ -1804,6 +2120,58 @@ function Get-RESAMLog
     }
 }
 
+<#
+.Synopsis
+    Schedules a new job for a RES Automation Manager module, project or runbook.
+.DESCRIPTION
+    Schedules a new job for a RES Automation Manager module, project or runbook.
+    This command makes use of the REST API and will require a dispatcher with the
+    WebAPI enabled. This also requires a RES AM account that has sufficient rights
+    to read modules, projects and runbooks and can schedule jobs.
+.PARAMETER Dispatcher
+    Name of the dispatcher with the WebAPI enabled.
+.PARAMETER Credential
+    The RES AM user account name or it's credentials.
+.PARAMETER Description
+    A description for the job. If not entered the name of the scheduled object
+    will be used.
+.PARAMETER Who
+    Names of agents or teams the job should run on. Use either a comma separated
+    list of names or an array of agents.
+.PARAMETER Module
+    Name of a module or module object to schedule.
+.PARAMETER Project
+    Name of a project or project object to schedule.    
+.PARAMETER Runbook
+    Name of a runbook or runbook object to schedule.
+.PARAMETER Start
+    Date/Time the job should start. When omitted the job will be scheduled immediately.
+.PARAMETER LocalTime
+    Use local time (Default).
+.PARAMETER UseWOL
+    Use Wake-on-LAN when the job starts.
+.PARAMETER Parameters
+    A hashtable of required parameters for the job. When omitted the user
+    will be prompted for required parameter values. You can find the required
+    parameters by using the RequiredParameters property on the module, project
+    or runbook you're scheduling.
+.EXAMPLE
+    New-RESAMJob -Dispatcher SRV-DISP-001 -Credential APIUser -Description 'New Test Job' -Who PC1234,PC5678 -Module 'Test Module'
+    Schedules the module 'Test Module' to run immediately on agent 'PC1234' and
+    'PC5678' using dispatcher 'SRV-DISP-001' as user 'APIUser'. There will be a
+    prompt for the password.
+.EXAMPLE
+    Get-RESAMAgent | New-RESAMJob -Dispatcher SRV-DISP-001 -Credential $Cred -Description 'New Test Job' -Project 'Test Project' -Start (Get-Date).AddHours(1) -Parameters @{Param1='TEST'}
+    Schedules the project 'Test Project' to run in an hour on all agents
+    using dispatcher 'SRV-DISP-001' with a credential object saved in a variable.
+    Required parameter 'Param1' is set with value 'TEST'.
+.NOTES
+    Author        : Michaja van der Zouwen
+    Version       : 1.0
+    Creation Date : 25-6-2015
+.LINK
+   http://itmicah.wordpress.com
+#>
 function New-RESAMJob {
     [CmdletBinding()]
 	param(
@@ -1818,7 +2186,7 @@ function New-RESAMJob {
         $Description,
 
 		[Parameter(ValueFromPipeline=$true)]
-        $Agent,
+        $Who,
 
         [Parameter(ParameterSetName='Module')]
         $Module,
@@ -1836,7 +2204,7 @@ function New-RESAMJob {
         $LocalTime = $true,
 
 		[Switch]
-        $UseWOL = $false,
+        $UseWOL,
 
 		[HashTable]
         $Parameters
@@ -1914,7 +2282,7 @@ function New-RESAMJob {
         {
             $Description = $Task.Name
         }
-
+        Write-Verbose "Getting input paramter object for '$Task'."
         $InputParameters = Get-RESAMInputParameter -Dispatcher $Dispatcher -Credential $Credential -What $Task -Raw
 
         If ($InputParameters)
@@ -1994,18 +2362,57 @@ function New-RESAMJob {
                 } # end foreach
             } # end If-else $Parameters
         } # end IF $inputparameters
-        $ArrAgents = @()
+        $ArrWho = @()
     }
 	process {
-        
-        If ($Agent.PSObject.TypeNames -contains 'RES.AutomationManager.Agent')
+        foreach ($AMWho in $Who)
         {
-            $ArrAgents += $Agent
-        }
-        else
-        {
-            $ArrAgents += (Get-RESAMAgent $Agent)
-        }
+            Write-Verbose "Processing target $AMWho..."
+            If ($AMWho.PSObject.TypeNames -contains 'RES.AutomationManager.Agent')
+            {
+                $ArrWho += [pscustomobject]@{
+                    ID = "{$($AMWho.WUIDAgent.ToString().ToUpper())}"
+                    Type = 0
+                    Name = $AMWho.Name
+                }
+            }
+            ElseIf ($AMWho.PSObject.TypeNames -contains 'RES.AutomationManager.Team')
+            {
+                $ArrWho += [pscustomobject]@{
+                    ID = "{$($AMWho.GUID.ToString().ToUpper())}"
+                    Type = 1
+                    Name = $AMWho.Name
+                }
+            }
+            else
+            {
+                Write-Verbose "Determinig target type..."
+                $Target = Get-RESAMAgent $AMWho
+                If ($Target)
+                {
+                    Write-Verbose "Target $AMWho is an Agent."
+                    $ArrWho += [pscustomobject]@{
+                        ID = "{$($Target.WUIDAgent.ToString().ToUpper())}"
+                        Type = 0
+                        Name = $Target.Name
+                    }
+                }
+                else
+                {
+                    $Target = Get-RESAMTeam $AMWho
+                    If (!$Target)
+                    {
+                        Throw "Unable to find Agent/Team named $AMWho."
+                    }
+                    Write-Verbose "Target $AMWho is a Team."
+                    $ArrWho += [pscustomobject]@{
+                        ID = "{$($Target.GUID.ToString().ToUpper())}"
+                        Type = 1
+                        Name = $Target.Name
+                    }
+                }
+            } # end If-elsif-else
+        } # end foreach
     }
     End
     {
@@ -2027,16 +2434,7 @@ function New-RESAMJob {
                             Name = $Task.Name
                         }
                     )
-            Who = @(
-                foreach ($AMAgent in $arrAgents)
-                {
-                        [pscustomobject]@{
-                            ID = "{$($amAgent.WUIDAgent.ToString().ToUpper())}"
-                            Type = 0
-                            Name = $AMAgent.Name
-                        }
-                }
-            )
+            Who = $ArrWho
             Parameters = @($InputParameters)
 		}
 		$pREST = @{
