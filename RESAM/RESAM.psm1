@@ -1734,6 +1734,110 @@ function Get-RESAMMasterJob
 }
 
 <#
+function Get-RESAMJobTask
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 0)]
+        [Alias('strDescription')]
+        [string]
+        $Description,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 1)]
+        [Alias('MasterJobGUID')]
+        [guid]
+        $GUID,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 2)]
+        [Alias('Agent')]
+        [Alias('Team')]
+        [string]
+        $Who,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 3)]
+        [guid]
+        $ModuleGUID,
+        
+        [switch]
+        $Scheduled,
+
+        [switch]
+        $Active,
+
+        [switch]
+        $IncludeChildJobs,
+
+        [int]
+        $Last = 1000,
+
+        [switch]
+        $Full
+    )
+    begin
+    {
+        If ($Last -eq 1000)
+        {
+            Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
+        }
+        $LastNr = "TOP $Last"
+    }
+    process
+    {
+        $Filter = @()
+        If ($Scheduled)
+        {
+            $Filter += "(lngStatus = 0 OR lngStatus = -1)"
+            $Filter += "RecurringJobGUID IS NULL"
+        }
+        If ($ModuleGUID)
+        {
+            $Filter += "ModuleGUID = '$ModuleGUID'"
+        }
+        IF (!$IncludeChildJobs)
+        {
+            $Filter += "lngJobInvoker <> 9"
+        }
+        If ($GUID -and !$ModuleGUID)
+        {
+            Write-Verbose "Running query based on GUID $GUID."
+            $Filter += "MasterJobGUID = '$($GUID.tostring())'"
+        }
+        Elseif ($Description -and !$ModuleGUID)
+        {
+            Write-Verbose "Running query based on description '$Description'."
+            $Filter += "strDescription LIKE '$($Description.replace('*','%'))'"
+        }
+        If ($Who)
+        {
+            If ($Who -notmatch '\*')
+            {
+                $Who = "*$Who*" #Jobs can have multiple agents
+            }
+            $Filter += "strWho LIKE '$($Who.Replace('*','%'))'"
+        }
+        If ($Active)
+        {
+            $Filter += "lngStatus = 1"
+        }
+
+        $Query = "select $LastNr * from dbo.tblMasterJob"
+        If ($Filter)
+        {
+            $Filter = $Filter -join ' AND '
+            $Query = "$Query WHERE $Filter"
+        }
+
+        $Query = "$Query order by dtmStartDateTime DESC"
+        Invoke-SQLQuery $Query -Type Job -Full:$Full | Optimize-RESAMJob
+    }
+}
+#>
+
+<#
 .Synopsis
     Get RES Automation Manager Job objects.
 .DESCRIPTION
@@ -1971,6 +2075,51 @@ function Get-RESAMQueryResult
     }
 }
 
+#NOT READY
+function Get-RESAMLog
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$True,
+                   ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Job',
+                   Position = 0)]
+        [Alias('strAgent')]
+        [guid]
+        $JobGUID,
+
+        [Parameter(Mandatory=$True,
+                   ValueFromPipelineByPropertyName=$true,
+                   ParameterSetName='Task',
+                   Position = 0)]
+        [Alias('QueryGUID')]
+        [guid]
+        $TaskGUID
+    )
+    begin
+    {
+    }
+    process
+    {
+        If ($JobGUID)
+        {
+            Write-Verbose "Running query based on JobGUID $JobGUID."
+            $Query = "select * from dbo.tblLogs WHERE JobGUID = '$JobGUID'"
+        }
+        ElseIf ($TaskGUID)
+        {
+            Write-Verbose "Running query based on TaskGUID $TaskGUID."
+            $Query = "select * from dbo.tblLogs WHERE TaskGUID = '$TaskGUID'"
+        }
+        $Logs = Invoke-SQLQuery $Query
+        foreach ($Log in $Logs)
+        {
+            $FileQuery = "select * from dbo.tblFiles WHERE GUID = '$($Log.FileGUID)'"
+            Invoke-SQLQuery $FileQuery -Type LogFile
+        }
+    }
+}
+
 <#
 .Synopsis
     Schedules a new job for a RES Automation Manager module, project or runbook.
@@ -1987,8 +2136,8 @@ function Get-RESAMQueryResult
     A description for the job. If not entered the name of the scheduled object
     will be used.
 .PARAMETER Who
-    Names of agents or teams the job should run on. Use either a comma separated
-    list of names or an array of agents.
+    The agents or teams the job should run on. Use either a comma separated
+    list of names or an array of agent or team objects.
 .PARAMETER Module
     Name of a module or module object to schedule.
 .PARAMETER Project
