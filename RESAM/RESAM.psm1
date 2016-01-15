@@ -135,7 +135,14 @@ function ConvertTo-RESAMObject
             }
             If ($InputObject.$Property -is [datetime])
             {
-                $Value = ConvertTo-LocalTime $Value
+                If ($Value | Get-Member -Name ToLocalTime)
+                {
+                    $Value = $Value.ToLocalTime()
+                }
+                else
+                {
+                    $Value = ConvertTo-LocalTime $Value
+                }
             }
             Write-Verbose "Creating output object."
             $ht.Add($NewProp,$Value)
