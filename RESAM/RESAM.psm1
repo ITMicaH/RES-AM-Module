@@ -169,8 +169,7 @@ function ConvertFrom-ByteArray
     )
     
     Write-Verbose "Processing Byte Array..."
-    $NewArray = $ByteArray | ?{$_ -ne 0}
-    $Text = [System.Text.Encoding]::ASCII.GetString($NewArray)
+    $Text = [System.Text.Encoding]::Unicode.GetString($ByteArray)
     Try {
         [xml]$XML = $Text
         $Object = New-Object -TypeName psobject
