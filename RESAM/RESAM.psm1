@@ -169,6 +169,8 @@ function ConvertFrom-ByteArray
     )
     
     Write-Verbose "Processing Byte Array..."
+    #$NewArray = $ByteArray | ?{$_ -ne 0}
+    #$Text = [System.Text.Encoding]::ASCII.GetString($NewArray)
     $Text = [System.Text.Encoding]::Unicode.GetString($ByteArray)
     Try {
         [xml]$XML = $Text
@@ -1622,9 +1624,8 @@ function Get-RESAMMasterJob
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
-        [Alias('MasterJobGUID')]
         [guid]
-        $GUID,
+        $MasterJobGUID,
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 2)]
@@ -1637,6 +1638,11 @@ function Get-RESAMMasterJob
                    Position = 3)]
         [guid]
         $ModuleGUID,
+
+        [Parameter(ValueFromPipelineByPropertyName=$true,
+                   Position = 4)]
+        [guid]
+        $RunBookJobGUID,
         
         [Parameter(ValueFromPipelineByPropertyName=$false)]
         [ValidateSet('On Hold',
@@ -1673,12 +1679,13 @@ function Get-RESAMMasterJob
     process
     {
         $Filter = @()
-        #If ($Scheduled)
-        #{
-        #    $Filter += "(lngStatus = 0 OR lngStatus = -1)"
-        #    $Filter += "RecurringJobGUID IS NULL"
-        #}
-        If ($ModuleGUID)
+        
+        If ($RunBookJobGUID)
+        {
+            Write-Verbose "Running query based on MasterJobGUID '$RunBookJobGUID'."
+            $Filter += "MasterJobGUID = '$($RunBookJobGUID.tostring())'"
+        }
+        elseIf ($ModuleGUID)
         {
             $Filter += "ModuleGUID = '$ModuleGUID'"
         }
@@ -1690,10 +1697,10 @@ function Get-RESAMMasterJob
         {
             $Filter += "lngJobInvoker <> 9"
         }
-        If ($GUID -and !$ModuleGUID)
+        If ($MasterJobGUID -and !$ModuleGUID)
         {
             Write-Verbose "Running query based on GUID $GUID."
-            $Filter += "MasterJobGUID = '$($GUID.tostring())'"
+            $Filter += "MasterJobGUID = '$($MasterJobGUID.tostring())'"
         }
         If ($Description -and !$ModuleGUID)
         {
@@ -1934,11 +1941,6 @@ function Get-RESAMJob
     process
     {
         $Filter = @()
-        If ($Scheduled)
-        {
-            $Filter += "(lngStatus = 0 OR lngStatus = -1)"
-            $Filter += "RecurringJobGUID IS NULL"
-        }
         If ($Agent)
         {
             If ($Agent -is [guid])
@@ -2293,7 +2295,7 @@ function New-RESAMJob {
             }
             elseIf ($RunBook.GetType().Name -eq 'String')
             {
-                $Task = Get-RESAMProject $RunBook
+                $Task = Get-RESAMRunBook $RunBook
             }
             else
             {
@@ -2465,7 +2467,12 @@ function New-RESAMJob {
 			Method = "POST"
 			Credential = $Credential
 		}
-		Invoke-RESAMRestMethod @pREST -Body (ConvertTo-Json $blob -Depth 99)
+		$Job = Invoke-RESAMRestMethod @pREST -Body (ConvertTo-Json $blob -Depth 99)
+        switch ($Job.Status.JobInvoker)
+        {
+            'InvokeRunBook' {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -InvokedByRunbook | Get-RESAMMasterJob -Full}
+            Default         {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -Full}
+        }
 	}
 }
 
