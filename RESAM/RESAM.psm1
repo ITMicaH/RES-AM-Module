@@ -51,7 +51,16 @@ function Invoke-SQLQuery
         $command.CommandText = $Query
 
         Write-Verbose "Running SQL query '$query'"
-        $result = $command.ExecuteReader()
+        try
+        {
+            $result = $command.ExecuteReader()
+        }
+        catch
+        {
+            $RESAM_DB_Connection.Close()
+            $RESAM_DB_Connection.Open()
+            $result = $command.ExecuteReader()
+        }
         $CustomTable = new-object "System.Data.DataTable"
         try{
             $CustomTable.Load($result)
@@ -255,6 +264,12 @@ function Add-RESAMFolderName
         {
             $Folder = $InputObject.FolderGuid | Get-RESAMFolder
             $InputObject | Add-Member -MemberType NoteProperty -Name FolderName -Value $Folder.Name
+        }
+        If ($InputObject.ProjectGUID)
+        {
+            $Query = "select ModuleGUID,lngOrder,ysnEnabled from dbo.tblProjectModules where ProjectGUID = '$($InputObject.ProjectGUID)'"
+            $Modules = Invoke-SQLQuery -Query $Query | select Order,ModuleGUID,Enabled | sort order
+            $InputObject | Add-Member -MemberType NoteProperty -Name Modules -Value $Modules
         }
         $InputObject
     }
@@ -1155,6 +1170,7 @@ function Get-RESAMModule
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
+        [Alias('ModuleGUID')]
         [guid]
         $GUID,
 
@@ -1670,7 +1686,7 @@ function Get-RESAMMasterJob
     )
     begin
     {
-        If ($Last -eq 1000)
+        If ($Last -eq 1000 -and !$MasterJobGUID -and $Status -ne 'Active')
         {
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
@@ -2475,4 +2491,3 @@ function New-RESAMJob {
         }
 	}
 }
-
