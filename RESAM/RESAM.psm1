@@ -41,7 +41,7 @@ function Invoke-SQLQuery
             {
                 Write-Verbose "Error re-opening connection. Removing connection variable."
                 Remove-Variable -Scope Global -Name RESAM_DB_Connection
-                throw "Unable to re-open conection to the database. Please reconnect using the Connect-RESAMDatabase commandlet. Error is $($_.exception)."
+                throw "Unable to re-open connection to the database. Please reconnect using the Connect-RESAMDatabase commandlet. Error is $($_.exception)."
             }
         }
     }
