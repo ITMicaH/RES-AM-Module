@@ -739,6 +739,8 @@ function Disconnect-RESAMDatabase
     GUID of the Agent.
 .PARAMETER Team
     Team object or guid of the team the agent should be member of.
+.PARAMETER Status
+    Status of the agent. Values can be Online or Offline.
 .PARAMETER Full
     Retreive full information (adapter information etc.).
 .PARAMETER HasDuplicates
@@ -804,6 +806,11 @@ function Get-RESAMAgent
         [switch]
         $Full,
 
+        [Parameter(ParameterSetName='Default')]
+        [ValidateSet('Online','Offline')]
+        [string]
+        $Status,
+
         [Parameter(ParameterSetName='Duplicates')]
         [switch]
         $HasDuplicates
@@ -829,18 +836,26 @@ function Get-RESAMAgent
                 Invoke-SQLQuery $Query -Type Agent -Full:$Full | Optimize-RESAMAgent
             }
             return
-        }    
+        }
+        $Filter = @()
         if ($GUID)
         {
-            $Query = "select * from dbo.tblAgents WHERE WUIDAgent = '$GUID'"
+            $filter += "WUIDAgent = '$GUID'"
         }        
         elseif ($Name)
         {
-            $Query = "select * from dbo.tblAgents WHERE strName LIKE '$($Name.replace('*','%'))'"
+            $filter += "strName LIKE '$($Name.replace('*','%'))'"
         }
-        else
+        Switch ($Status)
         {
-            $Query = "select * from dbo.tblAgents"
+            Online {$Filter += "lngStatus = 1"}
+            Offline {$Filter += "lngStatus = 0"}
+        }
+        $Query = "select * from dbo.tblAgents"
+        If ($Filter)
+        {
+            $Filter = $Filter -join ' AND '
+            $Query = "$Query WHERE $Filter"
         }
         Invoke-SQLQuery $Query -Type Agent -Full:$Full | Optimize-RESAMAgent
     }
