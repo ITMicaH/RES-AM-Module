@@ -2527,8 +2527,8 @@ function New-RESAMJob {
 		$Job = Invoke-RESAMRestMethod @pREST -Body (ConvertTo-Json $blob -Depth 99)
         switch ($Job.Status.JobInvoker)
         {
-            'InvokeRunBook' {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -InvokedByRunbook | Get-RESAMMasterJob -Full}
-            Default         {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -Full}
+            'InvokeRunBook' {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -InvokedByRunbook | Get-RESAMMasterJob -Full -WA 0}
+            Default         {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -Full -WA 0}
         }
 	}
 }
