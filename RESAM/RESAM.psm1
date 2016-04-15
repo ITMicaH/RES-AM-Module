@@ -1738,7 +1738,7 @@ function Get-RESAMMasterJob
             Write-Verbose "Running query based on description '$Description'."
             $Filter += "strDescription LIKE '$($Description.replace('*','%'))'"
         }
-        If ($Who)
+        If ($Who -and !$RunBookJobGUID)
         {
             If ($Who -notmatch '\*')
             {
@@ -2300,6 +2300,14 @@ function New-RESAMJob {
             {
                 Throw 'Incorrect object type for Module parameter.'
             }
+            If (!$Who)
+            {
+                $Who = Read-Host -Prompt 'Please provide an agent for this job'
+                If (!$Who)
+                {
+                    throw 'Unable to schedule module without an agent.'
+                }
+            }
             $Type = 0
         }
         If ($Project)
@@ -2316,6 +2324,14 @@ function New-RESAMJob {
             {
                 Throw 'Incorrect object type for Project parameter.'
             }
+            If (!$Who)
+            {
+                $Who = Read-Host -Prompt 'Please provide an agent for this job'
+                If (!$Who)
+                {
+                    throw 'Unable to schedule project without an agent.'
+                }
+            }
             $Type = 1
         }
         If ($RunBook)
@@ -2326,11 +2342,21 @@ function New-RESAMJob {
             }
             elseIf ($RunBook.GetType().Name -eq 'String')
             {
-                $Task = Get-RESAMRunBook $RunBook
+                $Task = Get-RESAMRunBook $RunBook -Full
             }
             else
             {
                 Throw 'Incorrect object type for RunBook parameter.'
+            }
+            If (!$Who -and
+                $Task.Properties.properties.jobs.job.properties.whoname -contains '' -and
+                $Task.Properties.properties.jobs.job.properties.use_runbookparam -eq 'no')
+            {
+                $Who = Read-Host -Prompt 'Please provide an agent for this job'
+                If (!$Who)
+                {
+                    throw 'Unable to schedule runbook without an agent.'
+                }
             }
             $Type = 2
         }
@@ -2338,7 +2364,7 @@ function New-RESAMJob {
         {
             $Description = $Task.Name
         }
-        Write-Verbose "Getting input paramter object for '$Task'."
+        Write-Verbose "Getting input parameter object for '$Task'."
         $InputParameters = Get-RESAMInputParameter -Dispatcher $Dispatcher -Credential $Credential -What $Task -Raw
 
         If ($InputParameters)
@@ -2506,3 +2532,4 @@ function New-RESAMJob {
         }
 	}
 }
+
