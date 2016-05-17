@@ -1660,8 +1660,8 @@ function Get-RESAMMasterJob
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 2)]
-        [Alias('Agent')]
-        [Alias('Team')]
+        [Alias('AgentName')]
+        [Alias('TeamName')]
         [string]
         $Who,
 
