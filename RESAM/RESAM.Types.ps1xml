@@ -56,6 +56,10 @@
 		</GetScriptBlock>
 	  </ScriptProperty>
 	  <ScriptMethod>
+		<Name>GetFullDetails</Name>
+		<Script>$this | Get-RESAMAgent -Full</Script>
+	  </ScriptMethod>
+	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
 		<Script>$this | Get-RESAMMasterJob</Script>
 	  </ScriptMethod>
@@ -111,6 +115,10 @@
 			}
 		</GetScriptBlock>
 	  </ScriptProperty>
+	  <ScriptMethod>
+		<Name>GetFullDetails</Name>
+		<Script>$this | Get-RESAMTeam -Full</Script>
+	  </ScriptMethod>
 	  <AliasProperty>
 		<Name>TeamName</Name>
 		<ReferencedMemberName>
@@ -242,6 +250,10 @@
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
 	  </ScriptProperty>
 	  <ScriptMethod>
+		<Name>GetFullDetails</Name>
+		<Script>$this | Get-RESAMModule -Full</Script>
+	  </ScriptMethod>
+	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
 		<Script>$this | Get-RESAMMasterJob</Script>
 	  </ScriptMethod>
@@ -277,7 +289,7 @@
 	  <ScriptProperty>
 		<Name>Parameters</Name>
 		<GetScriptBlock>
-			If ($this.Properties.properties.parameters)
+			If ($this.Properties.properties)
 			{
 				$this.Properties.properties.parameters.param| %{
 					switch ($_.Type)
@@ -322,7 +334,7 @@
 	  <ScriptProperty>
 		<Name>RequiredParameters</Name>
 		<GetScriptBlock>
-			If ($this.Properties.properties.parameters)
+			If ($this.Properties.properties)
 			{
 				$Required = $this.Properties.properties.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
 				$Required | %{
@@ -370,6 +382,10 @@
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
 	  </ScriptProperty>
 	  <ScriptMethod>
+		<Name>GetFullDetails</Name>
+		<Script>$this | Get-RESAMProject -Full</Script>
+	  </ScriptMethod>
+	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
 		<Script>$this | Get-RESAMMasterJob</Script>
 	  </ScriptMethod>
@@ -405,7 +421,7 @@
 	  <ScriptProperty>
 		<Name>Parameters</Name>
 		<GetScriptBlock>
-			If ($this.Properties.properties.parameters)
+			If ($this.Properties.properties)
 			{
 				$this.Properties.properties.parameters.param | %{
 					switch ($_.Type)
@@ -450,7 +466,7 @@
 	  <ScriptProperty>
 		<Name>RequiredParameters</Name>
 		<GetScriptBlock>
-			If ($this.Properties.properties.parameters)
+			If ($this.Properties.properties)
 			{
 				$Required = $this.Properties.properties.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
 				$Required | %{
@@ -497,6 +513,10 @@
 		<Name>RunBookGUID</Name>
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
 	  </ScriptProperty>
+	  <ScriptMethod>
+		<Name>GetFullDetails</Name>
+		<Script>$this | Get-RESAMRunbook -Full</Script>
+	  </ScriptMethod>
 	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
 		<Script>$this | Get-RESAMMasterJob</Script>
