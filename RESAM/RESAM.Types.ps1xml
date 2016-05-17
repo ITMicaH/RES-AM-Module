@@ -55,6 +55,16 @@
 			}
 		</GetScriptBlock>
 	  </ScriptProperty>
+	  <ScriptMethod>
+		<Name>GetJobHistory</Name>
+		<Script>$this | Get-RESAMMasterJob</Script>
+	  </ScriptMethod>
+	  <AliasProperty>
+		<Name>AgentName</Name>
+		<ReferencedMemberName>
+			Name
+		</ReferencedMemberName>
+	  </AliasProperty>
     </Members>
   </Type>
   <Type>
@@ -101,6 +111,12 @@
 			}
 		</GetScriptBlock>
 	  </ScriptProperty>
+	  <AliasProperty>
+		<Name>TeamName</Name>
+		<ReferencedMemberName>
+			Name
+		</ReferencedMemberName>
+	  </AliasProperty>
     </Members>
   </Type>
   <Type>
@@ -225,6 +241,10 @@
 		<Name>ModuleGUID</Name>
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
 	  </ScriptProperty>
+	  <ScriptMethod>
+		<Name>GetJobHistory</Name>
+		<Script>$this | Get-RESAMMasterJob</Script>
+	  </ScriptMethod>
     </Members>
   </Type>
   <Type>
@@ -349,6 +369,10 @@
 		<Name>ProjectGUID</Name>
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
 	  </ScriptProperty>
+	  <ScriptMethod>
+		<Name>GetJobHistory</Name>
+		<Script>$this | Get-RESAMMasterJob</Script>
+	  </ScriptMethod>
     </Members>
   </Type>
   <Type>
@@ -473,6 +497,10 @@
 		<Name>RunBookGUID</Name>
 		<GetScriptBlock>$this.GUID</GetScriptBlock>
 	  </ScriptProperty>
+	  <ScriptMethod>
+		<Name>GetJobHistory</Name>
+		<Script>$this | Get-RESAMMasterJob</Script>
+	  </ScriptMethod>
     </Members>
   </Type>
   <Type>
