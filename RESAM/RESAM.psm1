@@ -1667,6 +1667,7 @@ function Get-RESAMMasterJob
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 3)]
+        [Alias('GUID')]
         [guid]
         $ModuleGUID,
 
@@ -1724,7 +1725,7 @@ function Get-RESAMMasterJob
         {
             $Filter += "lngJobInvoker = 9"
         }
-        else
+        elseif (!$ModuleGUID)
         {
             $Filter += "lngJobInvoker <> 9"
         }
