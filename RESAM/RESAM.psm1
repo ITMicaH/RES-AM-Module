@@ -1610,6 +1610,9 @@ function Get-RESAMDatabaseLevel
     The GUID of the Module, Project or Runbook that was scheduled.
 .PARAMETER Status
     Only returns MasterJobs that are in a certain state.
+.PARAMETER StartDate
+    Returns a single MasterJob with a certain startdate/time. Input
+    can be either a string or a DateTime object.
 .PARAMETER InvokedByRunbook
     By default only main MasterJobs are returned. These are the
     jobs as shown in the console. With this parameter you can
@@ -1636,6 +1639,9 @@ function Get-RESAMDatabaseLevel
     Get-RESAMMasterJob -Description 'A worthy Runbook' -InvokedByRunbook -Last 20
     Display basic information on the last 20 Masterjobs that were 
     invoked by a RunBook with a description of 'A worthy Runbook'.
+.EXAMPLE
+    Get-RESAMMasterJob -StartDate '19-5-2016 14:06:42' -Full
+    Display full information on the MasterJobs with startdate '19-5-2016 14:06:42'.
 .NOTES
     Author        : Michaja van der Zouwen
     Version       : 1.0
