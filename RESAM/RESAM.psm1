@@ -1691,6 +1691,9 @@ function Get-RESAMMasterJob
         [string]
         $Status,
 
+        [psobject]
+        $StartDate,
+
         [switch]
         $InvokedByRunbook,
 
@@ -1702,7 +1705,7 @@ function Get-RESAMMasterJob
     )
     begin
     {
-        If ($Last -eq 1000 -and !$MasterJobGUID -and $Status -ne 'Active')
+        If ($Last -eq 1000 -and !$MasterJobGUID -and $Status -ne 'Active' -and !$StartDate)
         {
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
@@ -1765,7 +1768,13 @@ function Get-RESAMMasterJob
             }
             $Filter += "lngStatus = $StatusNr"
         }
-
+        If ($StartDate)
+        {
+            $uDate = (Get-Date $StartDate -ea 1).ToUniversalTime()
+            $Date1 = Get-Date $uDate.AddSeconds(-1) -Format 'yyyy-MM-dd HH:mm:ss'
+            $Date2 = Get-Date $uDate.AddSeconds(1) -Format 'yyyy-MM-dd HH:mm:ss'
+            $Filter += "dtmStartDateTime BETWEEN '$Date1' AND '$Date2'"
+        }
         $Query = "select $LastNr * from dbo.tblMasterJob"
         If ($Filter)
         {
@@ -2115,7 +2124,7 @@ function Get-RESAMQueryResult
     }
 }
 
-#NOT READY
+#NOT READY!!
 function Get-RESAMLog
 {
     [CmdletBinding()]
