@@ -1715,7 +1715,14 @@ function Get-RESAMMasterJob
         {
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
-        $LastNr = "TOP $Last"
+        If ($Last -eq 0)
+        {
+            $LastNr = ""
+        }
+        else
+        {
+            $LastNr = "TOP $Last"
+        }
     }
     process
     {
@@ -1726,7 +1733,7 @@ function Get-RESAMMasterJob
             Write-Verbose "Running query based on MasterJobGUID '$RunBookJobGUID'."
             $Filter += "MasterJobGUID = '$($RunBookJobGUID.tostring())'"
         }
-        elseIf ($ModuleGUID)
+        elseIf ($ModuleGUID -and !$MasterJobGUID)
         {
             $Filter += "ModuleGUID = '$ModuleGUID'"
         }
@@ -1790,6 +1797,10 @@ function Get-RESAMMasterJob
 
         $Query = "$Query order by dtmStartDateTime DESC"
         Invoke-SQLQuery $Query -Type MasterJob -Full:$Full | Optimize-RESAMJob
+        If ((Get-RESAMDatabaseLevel) -ge 61)
+        {
+            Invoke-SQLQuery $Query.Replace('tblMasterJob','tblMasterJobHistory') -Type MasterJob -Full:$Full | Optimize-RESAMJob
+        }
     }
 }
 
@@ -1914,7 +1925,8 @@ function Get-RESAMJobTask
     Returns jobs with a certain status.
 .PARAMETER Last
     By default only the last 1000 jobs will be returned. If more
-    are required use this parameter to specify the correct amount.
+    are required use this parameter to specify the correct amount or
+    enter 0 for all jobs.
 .PARAMETER Full
     Retreive full information (Task information etc.).
 .EXAMPLE
@@ -1983,7 +1995,14 @@ function Get-RESAMJob
         {
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
-        $LastNr = "TOP $Last"
+        If ($Last -eq 0)
+        {
+            $LastNr = ""
+        }
+        else
+        {
+            $LastNr = "TOP $Last"
+        }
     }
     process
     {
@@ -2036,6 +2055,10 @@ function Get-RESAMJob
 
         $Query = "$Query order by dtmStartDateTime DESC"
         Invoke-SQLQuery $Query -Type Job -Full:$Full | Optimize-RESAMJob
+        If ((Get-RESAMDatabaseLevel) -ge 61)
+        {
+            Invoke-SQLQuery $Query.Replace('tblJobs','tblJobsHistory') -Type Job -Full:$Full | Optimize-RESAMJob
+        }
     }
 }
 
