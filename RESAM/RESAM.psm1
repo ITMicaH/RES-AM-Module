@@ -863,6 +863,185 @@ function Get-RESAMAgent
 
 <#
 .Synopsis
+   Remove RES One Automation Agent from the database.
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+.INPUTS
+   Inputs to this cmdlet (if any)
+.OUTPUTS
+   Output from this cmdlet (if any)
+.NOTES
+   General notes
+.COMPONENT
+   The component this cmdlet belongs to
+.ROLE
+   The role this cmdlet belongs to
+.FUNCTIONALITY
+   The functionality that best describes this cmdlet
+#>
+function Remove-RESAMAgent
+{
+    [CmdletBinding(SupportsShouldProcess=$true,
+                  ConfirmImpact='High')]
+    Param
+    (
+        # Name of agent to remove
+        [Parameter(Mandatory=$true, 
+                   ValueFromPipelineByPropertyName=$true, 
+                   Position=0)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        [Alias('Agent')]
+        [string]
+        $Name,
+
+        # GUID of agent to remove
+        [Parameter(Mandatory=$false, 
+                   ValueFromPipelineByPropertyName=$true, 
+                   Position=1)]
+        [Alias('WUIDAgent')]
+        [Alias('AgentGUID')]
+        [guid]
+        $GUID,
+
+        # Remove job history as well
+        [switch]
+        $IncludeJobHistory
+    )
+    Begin
+    {
+        $Agents = @()
+    }
+    Process
+    {
+        Write-Verbose "Checking agent existence..."
+        If ($GUID)
+        {
+            $Agents += (Get-RESAMAgent -GUID $GUID)
+        }
+        elseif ($Name)
+        {
+            $Agents += (Get-RESAMAgent -Name $Name)
+        }
+    }
+    End
+    {
+        If (!$Agents)
+        {
+            throw 'Agent(s) not found in database.'
+        }
+        else
+        {
+            Write-Verbose "Found $($Agents.Count) Agent(s) in the database."
+        }
+        foreach ($AgentName in ($Agents | group Name))
+        {
+            If ($AgentName.Count -gt 1)
+            {
+                Write-Verbose "Multiple agents detected named '$($AgentName.Name)'!"
+                If ($StoredSetting)
+                {
+                    Write-Verbose "Using previous method to handle duplicates."
+                    $Proceed = $StoredSetting
+                }
+                else
+                {
+                    $Title = "Duplicate agent names detected."
+                    $Message = "There are $($AgentName.Count) agents named '$($AgentName.Name)'!`nHow would you like to proceed?"
+                
+                    $Abort = New-Object System.Management.Automation.Host.ChoiceDescription "&Abort",
+                        "Abort all operations."
+                    $Skip = New-Object System.Management.Automation.Host.ChoiceDescription "&Skip agents",
+                        "Skip these agents and continue."
+                    $RemoveAll = New-Object System.Management.Automation.Host.ChoiceDescription "&Remove all",
+                        "Remove all agents."
+                    $KeepLatest = New-Object System.Management.Automation.Host.ChoiceDescription "&Keep latest",
+                        "Remove all agents except the latest one."
+                    $Options = [System.Management.Automation.Host.ChoiceDescription[]]($Abort,$Skip,$RemoveAll,$KeepLatest)
+                
+                    $Proceed = $Host.ui.PromptForChoice($Title, $Message, $Options, 0)
+                }
+                switch ($Proceed)
+                {
+                    0   {throw "Operation cancelled!"}
+                    1   {
+                            Write-Verbose "Removing agents named '$($AgentName.Name)' from array..."
+                            $Agents = $Agents | ?{$_.Name -ne $AgentName.Name}
+                        }
+                    3   {
+                            Write-Verbose 'Removing latest deployed agent from array...'
+                            $SkipAgent = $AgentName.Group | sort DeployedOn | select -Last 1
+                            $Agents = $Agents | ?{$_ -ne $SkipAgent}
+                        }
+                }
+                If (!$StoredSetting)
+                {
+                    $Title = "Duplicate agent names detected."
+                    $Message = "Would you like to apply this setting to all duplicate agent names?"
+                
+                    $Yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes",
+                        "Cancel removal of the agents."
+                
+                    $No = New-Object System.Management.Automation.Host.ChoiceDescription "&No",
+                        "Remove all agents."
+                    $Options = [System.Management.Automation.Host.ChoiceDescription[]]($Yes,$No)
+
+                    $Remember = $Host.ui.PromptForChoice($Title, $Message, $Options, 0)
+                    switch ($Remember)
+                    {
+                        0 {$StoredSetting = $Proceed}
+                    }
+                }
+            }
+        }
+        If ($Agents)
+        {
+            $WUIDs = @()
+            foreach ($Agent in $Agents)
+            {
+                If ($Agent.Status -eq 'Online')
+                {
+                    Write-Error "Agent '$($Agent.Name)' is currently online. Only offline agents can be removed from the database."
+
+                }
+                else
+                {
+                    $WUIDs += "WUIDAgent = '$($Agent.WUIDAgent)'"
+                }
+            }
+            $Filter = $WUIDs -join ' OR '
+            $Query = "DELETE FROM dbo.tblAgent WHERE $Filter"
+            Write-Verbose "Removing $($Agents.Count) RES AM agent(s) from the database..."
+            if ($pscmdlet.ShouldProcess("$($Agents.Count) RES AM agent(s)", "Remove from database"))
+            {
+                Invoke-SQLQuery $Query -ErrorAction Stop
+            }
+            If ($IncludeJobHistory)
+            {
+                $Filter = $Filter -replace 'WUIDAgent','AgentGUID'
+                $Query = "SELECT strAgent FROM dbo.tblJobsHistory WHERE $Filter"
+                $Jobs = Invoke-SQLQuery $Query
+                if ($pscmdlet.ShouldProcess("$($Jobs.Count) RES AM jobs", "Remove history from database"))
+                {
+                    $Query = "DELETE FROM dbo.tblJobsHistory WHERE $Filter"
+                    Invoke-SQLQuery $Query
+                }
+            }
+        }
+        else
+        {
+            Write-Verbose 'No agents left to remove.'
+        }
+        Write-Verbose 'Finished'
+    }
+}
+
+<#
+.Synopsis
     Get RES Automation Manager Team objects.
 .DESCRIPTION
     Get RES Automation Manager Team objects from the RES Automation 
@@ -2569,6 +2748,5 @@ function New-RESAMJob {
             'InvokeRunBook' {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -InvokedByRunbook | Get-RESAMMasterJob -Full -WA 0}
             Default         {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -Full -WA 0}
         }
-	}
+    }
 }
-
