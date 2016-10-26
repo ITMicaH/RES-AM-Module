@@ -70,6 +70,7 @@ FunctionsToExport = @(
     'Connect-RESAMDatabase'
     'Disconnect-RESAMDatabase'
     'Get-RESAMAgent'
+	'Remove-RESAMAgent'
     'Get-RESAMTeam'
     'Get-RESAMAudit'
     'Get-RESAMDispatcher'
