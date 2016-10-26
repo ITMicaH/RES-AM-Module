@@ -1014,7 +1014,7 @@ function Remove-RESAMAgent
                 }
             }
             $Filter = $WUIDs -join ' OR '
-            $Query = "DELETE FROM dbo.tblAgent WHERE $Filter"
+            $Query = "DELETE FROM dbo.tblAgents WHERE $Filter"
             Write-Verbose "Removing $($Agents.Count) RES AM agent(s) from the database..."
             if ($pscmdlet.ShouldProcess("$($Agents.Count) RES AM agent(s)", "Remove from database"))
             {
@@ -1022,12 +1022,21 @@ function Remove-RESAMAgent
             }
             If ($IncludeJobHistory)
             {
+                If ((Get-RESAMDatabaseLevel) -ge 61)
+                {
+                    $SQLTable = 'dbo.tblJobsHistory'
+                }
+                else
+                {
+                    $SQLTable = 'dbo.tblJobs'
+                }
+                Write-Verbose "Using SQL table '$SQLTable'."
                 $Filter = $Filter -replace 'WUIDAgent','AgentGUID'
-                $Query = "SELECT strAgent FROM dbo.tblJobsHistory WHERE $Filter"
+                $Query = "SELECT strAgent FROM $SQLTable WHERE $Filter"
                 $Jobs = Invoke-SQLQuery $Query
                 if ($pscmdlet.ShouldProcess("$($Jobs.Count) RES AM jobs", "Remove history from database"))
                 {
-                    $Query = "DELETE FROM dbo.tblJobsHistory WHERE $Filter"
+                    $Query = "DELETE FROM $SQLTable WHERE $Filter"
                     Invoke-SQLQuery $Query
                 }
             }
