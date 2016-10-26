@@ -9,7 +9,11 @@ Requirements:
 Info only:
 * RES AM database should be a SQL database.
 * User account with at least Read privileges on the database.
- 
+
+Remove agent from database:
+* RES AM database should be a SQL database.
+* User account with Write privileges on the database.
+
 Scheduling:
 * A dispatcher with the Web API enabled (The Dispatcher WebAPI is disabled by default. You can enable it by enabling the global setting WebAPI state (at Infrastructure > Datastore > Settings > Global Settings > Dispatcher WebAPI settings section)
 * RES AM credentials with at least rights to schedule jobs.
