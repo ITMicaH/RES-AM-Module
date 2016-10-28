@@ -1050,38 +1050,7 @@ function Get-RESAMTeam
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Audit information.
-.DESCRIPTION
-    Get RES Automation Manager audit information from the 
-    RES Automation Manager Database.
-.PARAMETER Action
-    Filter audits based on an action. E.G. Abort, Sign in, etc...
-.PARAMETER StartDate
-    Display audit trail from a start date.
-.PARAMETER EndDate
-    Display audit trail up to an end date.
-.PARAMETER WindowsAccount
-    Display audits made by a specific Windows account.
-.PARAMETER Last
-    Display last 'n' audits.
-.EXAMPLE
-    Get-RESAMAudit -Action 'Primary Team changed' -StartDate (Get-Date).AddDays(-4)
-    Displays information on all Primary Team changes in the last four days.
-.EXAMPLE
-    Get-RESAMAudit -StartDate 02-2015 -EndDate 03-2015
-    Displays all audit information in february of 2015
-.EXAMPLE
-    Get-RESAMAudit -WindowsAccount DOMAIN\User123 -Last 10
-    Displays the last 10 audits made by user DOMAIN\User123.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMAudit
 {
     [CmdletBinding(DefaultParameterSetName='Default')]
@@ -1192,29 +1161,7 @@ function Get-RESAMAudit
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Dispatcher objects.
-.DESCRIPTION
-    Get RES Automation Manager Dispatcher objects from the RES Automation 
-    Manager Database.
-.PARAMETER Name
-    Name of the Dispatcher. Wildcards are allowed.
-.PARAMETER GUID
-    GUID of the Dispatcher.
-.PARAMETER Full
-    Retreive full information (Adapter information etc.).
-.EXAMPLE
-    Get-RESAMDispatcher -Name SRV-DISP-*
-    Displays information on RES Automation Manager dispatchers
-    whose names start with 'SRV-DISP-'.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMDispatcher
 {
     [CmdletBinding()]
@@ -1229,24 +1176,45 @@ function Get-RESAMDispatcher
         [guid]
         $GUID,
 
+        [ValidateSet('Online','Offline')]
+        [string]
+        $Status,
+
         [switch]
         $Full
     )
     process
     {
+        Switch ($Status)
+        {
+            Online {$Filter = "lngStatus = 1"}
+            Offline {$Filter = "lngStatus = 0"}
+        }
         If ($GUID)
         {
             $Query = "select * from dbo.tblDispatchers WHERE WUIDDispatcher = '$($GUID.tostring())'"
+            If ($Filter)
+            {
+                $Query = "$Query AND $Filter"
+            }
         }
         elseif ($Name)
         {
             $Query = "select * from dbo.tblDispatchers WHERE strName LIKE '$($Name.replace('*','%'))'"
+            If ($Filter)
+            {
+                $Query = "$Query AND $Filter"
+            }
         }
         else
         {
             $Query = "select * from dbo.tblDispatchers"
+            If ($Filter)
+            {
+                $Query = "$Query WHERE $Filter"
+            }
         }
-
+        
         Invoke-SQLQuery $Query -Type Dispatcher -Full:$Full
     }
 }
