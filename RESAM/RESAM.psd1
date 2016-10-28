@@ -70,7 +70,7 @@ FunctionsToExport = @(
     'Connect-RESAMDatabase'
     'Disconnect-RESAMDatabase'
     'Get-RESAMAgent'
-    'Remove-RESAMAgent'
+	'Remove-RESAMAgent'
     'Get-RESAMTeam'
     'Get-RESAMAudit'
     'Get-RESAMDispatcher'
@@ -107,6 +107,7 @@ FileList = @(
     'RESAM.psd1'
     'RESAM.Format.ps1xml'
     'RESAM.Types.ps1xml'
+	'RESAM.Help.xml'
 )
 
 # Private data to pass to the module specified in RootModule/ModuleToProcess
