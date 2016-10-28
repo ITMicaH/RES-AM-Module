@@ -61,7 +61,7 @@
 	  </ScriptMethod>
 	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
-		<Script>$this | Get-RESAMMasterJob</Script>
+		<Script>Param([int]$Last = 1000); $this | Get-RESAMJob -Last $Last</Script>
 	  </ScriptMethod>
 	  <AliasProperty>
 		<Name>AgentName</Name>
@@ -387,7 +387,7 @@
 	  </ScriptMethod>
 	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
-		<Script>$this | Get-RESAMMasterJob</Script>
+		<Script>$this | Get-RESAMMasterJob -wa 0</Script>
 	  </ScriptMethod>
     </Members>
   </Type>
@@ -519,7 +519,7 @@
 	  </ScriptMethod>
 	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
-		<Script>$this | Get-RESAMMasterJob</Script>
+		<Script>$this | Get-RESAMMasterJob -wa 0</Script>
 	  </ScriptMethod>
     </Members>
   </Type>
@@ -586,6 +586,130 @@
           </PropertySet>
         </Members>
       </MemberSet>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.MasterJob</Name>
+    <Members>
+      <MemberSet>
+        <Name>PsStandardMembers</Name>
+        <Members>
+          <NoteProperty>
+            <Name>DefaultDisplayProperty</Name>
+            <Value>Description</Value>
+          </NoteProperty>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Description</Name>
+			  <Name>Enabled</Name>
+			  <Name>Flags</Name>
+			  <Name>IsProject</Name>
+			  <Name>IsRunBook</Name>
+			  <Name>IsRunBookJob</Name>
+			  <Name>IsTeam</Name>
+			  <Name>JobInvoker</Name>
+			  <Name>JobInvokerGUID</Name>
+			  <Name>JobInvokerInfo</Name>
+			  <Name>LocalTime</Name>
+			  <Name>MasterJobGUID</Name>
+			  <Name>ModuleGUID</Name>
+			  <Name>ModuleName</Name>
+			  <Name>Now</Name>
+			  <Name>Obsolete</Name>
+			  <Name>OrgTasks</Name>
+			  <Name>Recurring</Name>
+			  <Name>RecurringJobGUID</Name>
+			  <Name>RecurringSchedule</Name>
+			  <Name>RunBookJobGUID</Name>
+			  <Name>ScheduleDateTime</Name>
+			  <Name>StartDateTime</Name>
+			  <Name>Status</Name>
+			  <Name>StopDateTime</Name>
+			  <Name>UpdateGUID</Name>
+			  <Name>Who</Name>
+			  <Name>WhoGUID</Name>
+			  <Name>WOL</Name>
+            </ReferencedProperties>
+          </PropertySet>
+          <PropertySet>
+            <Name>DefaultKeyPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Description</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+	  <ScriptProperty>
+		<Name>Modules</Name>
+		<GetScriptBlock>
+			If ($this.Tasks)
+			{
+				$this.Tasks.tasks.task | ?{$_.moduleinfo}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>ModuleTasks</Name>
+		<GetScriptBlock>
+			If ($this.Tasks)
+			{
+				$this.Tasks.tasks.task | ?{!$_.moduleinfo}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptMethod>
+		<Name>GetFullDetails</Name>
+		<Script>Get-RESAMMasterJob -MasterJobGUID $this.MasterJobGUID -Full</Script>
+	  </ScriptMethod>
+	  <ScriptMethod>
+		<Name>GetFailedSummary</Name>
+		<Script>
+			If ($This.IsProject)
+			{
+				$Failed = $this | Get-RESAMJob -Status Failed -Full -Last 0
+				$FailedTasks = $Failed.Tasks.tasks.task | ?{$_.Status -eq 6}
+				foreach ($Task in $FailedTasks)
+				{
+					$Previous = $Task
+					Do
+					{
+						$Previous = $Previous.PreviousSibling
+					}
+					Until ($Previous.ModuleInfo)
+					[pscustomobject]@{
+						AgentName = $Task.AgentName
+						FailedModule = $Previous.ModuleInfo.Name
+						FailedTask = $Task.Properties.Description
+						Type = $Task.Properties.Type
+						Result = $Task.result
+					}
+				}
+			}
+			ElseIf ($This.IsRunBook)
+			{
+				
+			}
+			else
+			{
+			
+			}
+		</Script>
+	  </ScriptMethod>
+	  <AliasProperty>
+		<Name>AgentName</Name>
+		<ReferencedMemberName>
+			Name
+		</ReferencedMemberName>
+	  </AliasProperty>
     </Members>
   </Type>
 </Types>
