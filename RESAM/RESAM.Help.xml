@@ -541,7 +541,7 @@ Teams         : {Team1, Team2}</maml:para>
 				<maml:paragraph>PS C:\&gt;</maml:paragraph>
 			</maml:introduction>
 			<dev:code>C:\PS&gt; $Agent = Get-RESAMAgent -Name PC1234
-C:\PS&gt; $Agent.GetJobHistory() | select -First 5</dev:code>
+C:\PS&gt; $Agent.GetJobHistory(5)</dev:code>
 			<dev:remarks>
 				<maml:para>Gets agent PC1234 and retreives the last five jobs that ran on it.</maml:para>
 				<maml:para />
@@ -618,7 +618,7 @@ NB4321           3    </maml:para>
 	<command:details>
 		<command:name>Get-RESAMAudit</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager Audit information.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -628,7 +628,7 @@ NB4321           3    </maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager audit information from the RES Automation Manager Database.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
@@ -636,21 +636,30 @@ NB4321           3    </maml:para>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Action</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Filter audits based on an action. Allowed values are:</maml:para>
+					<maml:para>    - Add
+    - Delete
+    - Edit
+    - Edit (details)
+    - Other
+    - Primary Team changed
+    - Register
+    - Sign in
+    - Sign out</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="3">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="3">
 				<maml:name>WindowsAccount</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Display audits made by a specific Windows account.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="named">
 				<maml:name>Last</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Display last &#39;n&#39; audits.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
 			</command:parameter>
@@ -660,28 +669,37 @@ NB4321           3    </maml:para>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Action</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Filter audits based on an action. Allowed values are:</maml:para>
+					<maml:para>    - Add
+    - Delete
+    - Edit
+    - Edit (details)
+    - Other
+    - Primary Team changed
+    - Register
+    - Sign in
+    - Sign out</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>StartDate</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Display audit trail from a start date.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">DateTime</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
 				<maml:name>EndDate</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Display audit trail up to an end date.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">DateTime</command:parameterValue>
 			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="3">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="3">
 				<maml:name>WindowsAccount</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Display audits made by a specific Windows account.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
@@ -691,7 +709,16 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Action</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Filter audits based on an action. Allowed values are:</maml:para>
+				<maml:para>    - Add
+    - Delete
+    - Edit
+    - Edit (details)
+    - Other
+    - Primary Team changed
+    - Register
+    - Sign in
+    - Sign out</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -700,10 +727,10 @@ NB4321           3    </maml:para>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="3">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="3">
 			<maml:name>WindowsAccount</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Display audits made by a specific Windows account.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -715,7 +742,7 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="named">
 			<maml:name>Last</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Display last &#39;n&#39; audits.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
 			<dev:type>
@@ -727,7 +754,7 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>StartDate</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Display audit trail from a start date.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">DateTime</command:parameterValue>
 			<dev:type>
@@ -739,7 +766,7 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
 			<maml:name>EndDate</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Display audit trail up to an end date.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">DateTime</command:parameterValue>
 			<dev:type>
@@ -782,8 +809,72 @@ NB4321           3    </maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Specific actions from start date  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMAudit -Action &apos;Primary Team changed&apos; -StartDate (Get-Date).AddDays(-4)</dev:code>
+			<dev:remarks>
+				<maml:para>Displays information on all Primary Team changes in the last four days.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Audits for specific timeframe  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMAudit -StartDate 02-2015 -EndDate 03-2015</dev:code>
+			<dev:remarks>
+				<maml:para>Displays all audit information in february of 2015.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Audits by windows account  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMAudit -WindowsAccount DOMAIN\User123 -Last 10</dev:code>
+			<dev:remarks>
+				<maml:para>Displays the last 10 audits made by user DOMAIN\User123.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -902,6 +993,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -1020,6 +1115,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -1080,6 +1179,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -1087,7 +1190,7 @@ NB4321           3    </maml:para>
 	<command:details>
 		<command:name>Get-RESAMDispatcher</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager Dispatcher objects.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -1097,39 +1200,48 @@ NB4321           3    </maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager Dispatcher objects from the RES Automation Manager Database.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMDispatcher</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Name</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the Dispatcher.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>GUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the Dispatcher.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>Status</maml:name>
+				<maml:description>
+					<maml:para>Filter on dispatcher status. Valid values are:</maml:para>
+					<maml:para>   - Online
+   - Offline</maml:para>
+				</maml:description>
+				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			</command:parameter>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Full</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Retreive full information (Adapter information etc.).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Name</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of the Dispatcher.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1141,7 +1253,7 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>GUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the Dispatcher.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -1153,11 +1265,25 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Full</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Retreive full information (Adapter information etc.).</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
 				<maml:name>SwitchParameter</maml:name>
+				<maml:uri/>
+			</dev:type>
+			<dev:defaultValue></dev:defaultValue>
+		</command:parameter>
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<maml:name>Status</maml:name>
+			<maml:description>
+				<maml:para>Filter on dispatcher status. Valid values are:</maml:para>
+				<maml:para>   - Online
+   - Offline</maml:para>
+			</maml:description>
+			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+			<dev:type>
+				<maml:name>String</maml:name>
 				<maml:uri/>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
@@ -1192,12 +1318,78 @@ NB4321           3    </maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get all dispatchers  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMDispatcher</dev:code>
+			<dev:remarks>
+				<maml:para>Get all dispatchers.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get all offline dispatchers  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMDispatcher -Status Offline</dev:code>
+			<dev:remarks>
+				<maml:para>Get all dispatchers that are offline.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get dispatcher by name with wildcard  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMDispatcher -Name SRV-DISP-*</dev:code>
+			<dev:remarks>
+				<maml:para>Displays information on RES Automation Manager dispatchers whose names start with &#39;SRV-DISP-&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -1373,6 +1565,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -1475,6 +1671,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -1726,6 +1926,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -1844,6 +2048,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -1962,6 +2170,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -2099,6 +2311,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -2217,6 +2433,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -2335,6 +2555,10 @@ NB4321           3    </maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -2357,7 +2581,7 @@ NB4321           3    </maml:para>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMTeam</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="false" position="0">
 				<maml:name>Name</maml:name>
 				<maml:description>
 					<maml:para>Name of the Team.</maml:para>
@@ -2371,7 +2595,17 @@ NB4321           3    </maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+				<maml:name>Full</maml:name>
+				<maml:description>
+					<maml:para>Retreive full information (Rules information etc.).</maml:para>
+				</maml:description>
+				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+			</command:parameter>
+		</command:syntaxItem>
+		<command:syntaxItem>
+			<maml:name>Get-RESAMTeam</maml:name>
+			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="named">
 				<maml:name>Agent</maml:name>
 				<maml:description>
 					<maml:para>Agent object or GUID for which to search for team membership.</maml:para>
@@ -2388,7 +2622,7 @@ NB4321           3    </maml:para>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="false" position="0">
 			<maml:name>Name</maml:name>
 			<maml:description>
 				<maml:para>Name of the Team.</maml:para>
@@ -2412,7 +2646,7 @@ NB4321           3    </maml:para>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
+		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="named">
 			<maml:name>Agent</maml:name>
 			<maml:description>
 				<maml:para>Agent object or GUID for which to search for team membership.</maml:para>
@@ -2943,6 +3177,10 @@ Creation Date : 25-6-2015</maml:para>
 	<command:examples>
 	</command:examples>
 	<maml:relatedLinks>
+		<maml:navigationLink>
+			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
+			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
