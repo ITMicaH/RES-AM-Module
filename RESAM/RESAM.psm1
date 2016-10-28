@@ -1,14 +1,11 @@
-
 #region HelperFunctions
 
 # Invokes a query on the RES AM Database.
 function Invoke-SQLQuery
 {
     [CmdletBinding()]
-    [OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
                    Position=0)]
@@ -89,10 +86,8 @@ function Invoke-SQLQuery
 function ConvertTo-RESAMObject
 {
     [CmdletBinding()]
-    [OutputType([int])]
     Param
     (
-        # Param1 help description
         [Parameter(Mandatory=$true,
                    ValueFromPipeline = $true,
                    Position=0)]
@@ -108,10 +103,12 @@ function ConvertTo-RESAMObject
         $Full = $true
 
     )
-
-    Process
+    Begin
     {
         Write-Verbose "Creating custom object for output."
+    }
+    Process
+    {
         $Properties = $InputObject | Get-Member -MemberType Property |
          select -ExpandProperty Name
         $ht = @{}
@@ -153,7 +150,6 @@ function ConvertTo-RESAMObject
                     $Value = ConvertTo-LocalTime $Value
                 }
             }
-            Write-Verbose "Creating output object."
             $ht.Add($NewProp,$Value)
         }
         $Object = New-Object -TypeName psobject -Property $ht
@@ -169,17 +165,16 @@ function ConvertTo-RESAMObject
 function ConvertFrom-ByteArray
 {
     [CmdletBinding()]
+
     Param(
         [Parameter(Mandatory=$true,
-        ValueFromPipeline=$true,
-        Position=0)]
+                   ValueFromPipeline=$true,
+                   Position=0)]
         [System.Byte[]]
         $ByteArray
     )
     
     Write-Verbose "Processing Byte Array..."
-    #$NewArray = $ByteArray | ?{$_ -ne 0}
-    #$Text = [System.Text.Encoding]::ASCII.GetString($NewArray)
     $Text = [System.Text.Encoding]::Unicode.GetString($ByteArray)
     Try {
         [xml]$XML = $Text
@@ -224,6 +219,7 @@ function Get-RESAMFolder
                    Position = 0)]
         [string]
         $Name,
+
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 1)]
         [Alias('FolderGUID')]
@@ -254,9 +250,9 @@ function Add-RESAMFolderName
 {
     [CmdletBinding()]
     Param (
-    [Parameter(ValueFromPipeline=$true)]
-    $InputObject)
-
+        [Parameter(ValueFromPipeline=$true)]
+        $InputObject
+    )
 
     process
     {
@@ -280,19 +276,19 @@ function Optimize-RESAMAgent
 {
     [CmdletBinding()]
     Param (
-    [Parameter(ValueFromPipeline=$true)]
-    [ValidateScript({
-            If ($_.PSObject.TypeNames -contains 'RES.AutomationManager.Agent' -or
-             $_ -is [guid])
-             {
-                $true
-             }
-             else
-             {
-                throw "Object type should be 'RES.AutomationManager.Agent'."
-             }
-        })]
-    $Agent
+        [Parameter(ValueFromPipeline=$true)]
+        [ValidateScript({
+                If ($_.PSObject.TypeNames -contains 'RES.AutomationManager.Agent' -or
+                 $_ -is [guid])
+                 {
+                    $true
+                 }
+                 else
+                 {
+                    throw "Object type should be 'RES.AutomationManager.Agent'."
+                 }
+            })]
+        $Agent
     )
 
     Process
@@ -338,10 +334,10 @@ function Optimize-RESAMFolder
 {
     [CmdletBinding()]
     Param (
-    [Parameter(ValueFromPipeline=$true)]
-    $Folder)
-
-
+        [Parameter(ValueFromPipeline=$true)]
+        $Folder
+    )
+    
     process
     {
         $Folder.Name = $Folder.Name.Trim()
@@ -368,10 +364,10 @@ function Optimize-RESAMConnector
 {
     [CmdletBinding()]
     Param (
-    [Parameter(ValueFromPipeline=$true)]
-    $Connector)
-
-
+        [Parameter(ValueFromPipeline=$true)]
+        $Connector
+    )
+    
     process
     {
         switch ($Connector.Type)
@@ -510,7 +506,8 @@ function Optimize-RESAMJob
 }
 
 # Invokes a method using the REST Api
-function Invoke-RESAMRestMethod {
+function Invoke-RESAMRestMethod 
+{
     [CmdletBinding()]
 	param(
         [Parameter(Mandatory=$True)]
@@ -528,6 +525,7 @@ function Invoke-RESAMRestMethod {
         [System.Object]
         $Body
 	)
+
 	begin
     {
         If ($Credential) {
@@ -557,7 +555,8 @@ function Invoke-RESAMRestMethod {
 }
 
 # Retreives only used parameters using the webapi
-function Get-RESAMInputParameter {
+function Get-RESAMInputParameter
+{
     [CmdletBinding()]
 	param(
         [Parameter(Mandatory=$True)]
@@ -607,52 +606,23 @@ function Get-RESAMInputParameter {
 
 #endregion HelperFunctions
 
-<#
-.Synopsis
-    Connect to RES Automation Manager SQL Database.
-.DESCRIPTION
-    Sets up a connection to a RES Automation Manager SQL Database. The connection is saved in a
-    variable called RESAM_DB_Connection. You can only connect to one database at a time. 
-.PARAMETER Datasource
-    Name of the SQL datasource to connect to
-.PARAMETER DatabaseName
-    Name of the RES Automation Manager Database.
-.PARAMETER Credential
-    Credentials for the connection. Accepts PSCredentials or a username. The user must have 
-    read privileges on the database. If omitted, the default credentials will be used.
-.PARAMETER PassThru
-    Returns the connection object.
-.EXAMPLE
-    Connect-RESAMDatabase -DataSource SRV-SQL-01 -DatabaseName RES-AM -Credential RES-AM
-    Sets up a connection to database 'RES-AM' on the default SQL Instance on 'SRV-SQL-01'.
-    A credential prompt will appear to ask for the password of user 'RES-AM'.
-.EXAMPLE
-    $Cred = Get-Credential
-    C:\PS>Connect-RESAMDatabase -DataSource SRV-SQL-01\RES -DatabaseName RES-AM -Credential $Cred -Passthru
-    
-      
-    Sets up a connection to database 'RES-AM' on the 'RES' Instance on SQL server 'SRV-SQL-01'.
-    The connection object will be displayed.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Connect-RESAMDatabase
 {
     [CmdletBinding()]
+
     param (
         [Parameter(Mandatory=$true,
                    Position=0)]
         [string]
         $DataSource,
+
         [Parameter(Mandatory=$true,
                    Position=1)]
         [Alias('DBName')]
         [string]
         $DatabaseName,
+
         [Parameter(Mandatory=$false,
                    Position=2)]
         $Credential,
@@ -692,23 +662,7 @@ function Connect-RESAMDatabase
     }
 }
 
-<#
-.Synopsis
-    Disconnect from RES Automation Manager Database.
-.DESCRIPTION
-    Closes the connection to a RES Automation Manager Database.
-.PARAMETER Connection
-    Name of the SQL datasource to connect to.
-.EXAMPLE
-    Disconnect-RESAMDatabase
-    Closes connection to the currently connected database.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Disconnect-RESAMDatabase
 {
     Param (
@@ -727,48 +681,11 @@ function Disconnect-RESAMDatabase
     Remove-Variable -Scope Global -Name RESAM_DB_Connection
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Agent objects.
-.DESCRIPTION
-    Get RES Automation Manager Agent objects from the RES Automation 
-    Manager Database.
-.PARAMETER Name
-    Name of the Agent. Wildcards are allowed.
-.PARAMETER GUID
-    GUID of the Agent.
-.PARAMETER Team
-    Team object or guid of the team the agent should be member of.
-.PARAMETER Status
-    Status of the agent. Values can be Online or Offline.
-.PARAMETER Full
-    Retreive full information (adapter information etc.).
-.PARAMETER HasDuplicates
-    List agents that have duplicates.
-.EXAMPLE
-    Get-RESAMAgent -Name PC1234 -Full
-    Displays full information on RES Automation Manager agent PC1234.
-.EXAMPLE
-    Get-RESAMTeam -Name Team1 | Get-RESAMAgent
-    Displays default information on RES Automation Manager agent that are member
-    of team 'Team1'
-.EXAMPLE
-    Get-RESAMAgent -HasDuplicates
-    Displays a list of agent names that have duplicate agent objects in the
-    database.
-.EXAMPLE
-    Get-RESAMAgent -HasDuplicates | Get-RESAMAgent -Full
-    Displays all agent objects that have duplicates in the database.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMAgent
 {
     [CmdletBinding(DefaultParameterSetName='Default')]
+
     param (
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='Default',
@@ -776,6 +693,7 @@ function Get-RESAMAgent
         [Alias('Agent')]
         [string]
         $Name,
+
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='Default',
                    Position = 1)]
@@ -861,28 +779,7 @@ function Get-RESAMAgent
     }
 }
 
-<#
-.Synopsis
-   Remove RES One Automation Agent from the database.
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
-.INPUTS
-   Inputs to this cmdlet (if any)
-.OUTPUTS
-   Output from this cmdlet (if any)
-.NOTES
-   General notes
-.COMPONENT
-   The component this cmdlet belongs to
-.ROLE
-   The role this cmdlet belongs to
-.FUNCTIONALITY
-   The functionality that best describes this cmdlet
-#>
+#.ExternalHelp RESAM.Help.xml
 function Remove-RESAMAgent
 {
     [CmdletBinding(SupportsShouldProcess=$true,
@@ -907,6 +804,11 @@ function Remove-RESAMAgent
         [Alias('AgentGUID')]
         [guid]
         $GUID,
+
+        # How to handle duplicate agents
+        [ValidateSet('Abort','Skip','RemoveAll','KeepLatest')]
+        [string]
+        $DuplicatesPreference,
 
         # Remove job history as well
         [switch]
@@ -938,15 +840,34 @@ function Remove-RESAMAgent
         {
             Write-Verbose "Found $($Agents.Count) Agent(s) in the database."
         }
-        foreach ($AgentName in ($Agents | group Name))
+        Write-Verbose 'Checking for duplicate agent names...'
+        $GroupAgents = $Agents | group Name
+        foreach ($AgentName in $GroupAgents)
         {
             If ($AgentName.Count -gt 1)
             {
                 Write-Verbose "Multiple agents detected named '$($AgentName.Name)'!"
-                If ($StoredSetting)
+
+                If ($DuplicatesPreference)
+                {
+                    Write-Verbose "Using '$DuplicatesPreference' method to handle duplicates."
+                    switch ($DuplicatesPreference)
+                    {
+                        'Abort'      {$Proceed = 0}
+                        'Skip'       {$Proceed = 1}
+                        'RemoveAll'  {$Proceed = 2}
+                        'KeepLatest' {$Proceed = 3}
+                    }
+                }
+                elseif ($StoredSetting)
                 {
                     Write-Verbose "Using previous method to handle duplicates."
                     $Proceed = $StoredSetting
+                }
+                elseif($ConfirmPreference -eq 'None')
+                {
+                    Write-Verbose ""
+                    $Proceed = 2
                 }
                 else
                 {
@@ -965,6 +886,7 @@ function Remove-RESAMAgent
                 
                     $Proceed = $Host.ui.PromptForChoice($Title, $Message, $Options, 0)
                 }
+
                 switch ($Proceed)
                 {
                     0   {throw "Operation cancelled!"}
@@ -978,16 +900,19 @@ function Remove-RESAMAgent
                             $Agents = $Agents | ?{$_ -ne $SkipAgent}
                         }
                 }
-                If (!$StoredSetting)
+
+                If (!$DuplicatesPreference -and 
+                    !$StoredSetting -and 
+                    $AgentName -ne $GroupAgents[-1])
                 {
                     $Title = "Duplicate agent names detected."
                     $Message = "Would you like to apply this setting to all duplicate agent names?"
                 
                     $Yes = New-Object System.Management.Automation.Host.ChoiceDescription "&Yes",
-                        "Cancel removal of the agents."
+                        "Remember this setting."
                 
                     $No = New-Object System.Management.Automation.Host.ChoiceDescription "&No",
-                        "Remove all agents."
+                        "Ask again later."
                     $Options = [System.Management.Automation.Host.ChoiceDescription[]]($Yes,$No)
 
                     $Remember = $Host.ui.PromptForChoice($Title, $Message, $Options, 0)
@@ -1015,9 +940,13 @@ function Remove-RESAMAgent
             }
             $Filter = $WUIDs -join ' OR '
             $Query = "DELETE FROM dbo.tblAgents WHERE $Filter"
-            Write-Verbose "Removing $($Agents.Count) RES AM agent(s) from the database..."
-            if ($pscmdlet.ShouldProcess("$($Agents.Count) RES AM agent(s)", "Remove from database"))
+
+            if ($pscmdlet.ShouldProcess("$($WUIDs.Count) RES AM agent(s)", "Remove from database"))
             {
+                foreach ($Agent in $Agents)
+                {
+                    Write-Verbose "Removing agent '$($Agent.name)' from the database..."
+                }
                 Invoke-SQLQuery $Query -ErrorAction Stop
             }
             If ($IncludeJobHistory)
@@ -1030,7 +959,6 @@ function Remove-RESAMAgent
                 {
                     $SQLTable = 'dbo.tblJobs'
                 }
-                Write-Verbose "Using SQL table '$SQLTable'."
                 $Filter = $Filter -replace 'WUIDAgent','AgentGUID'
                 $Query = "SELECT strAgent FROM $SQLTable WHERE $Filter"
                 $Jobs = Invoke-SQLQuery $Query
@@ -1049,48 +977,27 @@ function Remove-RESAMAgent
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Team objects.
-.DESCRIPTION
-    Get RES Automation Manager Team objects from the RES Automation 
-    Manager Database.
-.PARAMETER Name
-    Name of the Team.
-.PARAMETER GUID
-    GUID of the Team.
-.PARAMETER Full
-    Retreive full information (Rules information etc.).
-.EXAMPLE
-    Get-RESAMTeam -Name Team1
-    Displays information on RES Automation Manager team 'Team1'
-.EXAMPLE
-    Get-RESAMAgent -Name PC1234 | Get-RESAMTeam
-    Displays RES Automation Manager teams of which agent 'PC1234'
-    is a member.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMTeam
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName='Default')]
+
     param (
-        [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 0)]
+        [Parameter(Position = 0,
+                   ParameterSetName = 'Default')]
         [string]
         $Name,
+
         [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 1)]
+                   Position = 1,
+                   ParameterSetName = 'Default')]
         [Alias('TeamGUID')]
         [guid]
         $GUID,
 
         [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 2)]
+                   DontShow=$true,
+                   ParameterSetName = 'ByAgent')]
         [Alias('WUIDAgent')]
         [ValidateScript({
             If ($_.PSObject.TypeNames -contains 'RES.AutomationManager.Agent' -or
@@ -1116,14 +1023,17 @@ function Get-RESAMTeam
             {
                 $Agent = $Agent.WUIDAgent
             }
-            $Query = "select * from dbo.tblTeamAgents WHERE AgentGUID = '$Agent.GUID'"
-            Invoke-SQLQuery $Query -Type AgentTeam | %{
-                $Query = "select * from dbo.tblTeams WHERE GUID = '$($_.TeamGUID)'"
-                Invoke-SQLQuery $Query -Type Team
+            $Query = "select TeamGUID from dbo.tblTeamAgents WHERE AgentGUID = '$($Agent.GUID)'"
+            $AgentTeams = Invoke-SQLQuery $Query -Type AgentTeam
+            $Filter = @()
+            foreach ($GUID in $AgentTeams.TeamGUID)
+            {
+                $Filter += "GUID = '$GUID'"
             }
-            return
+            $Filter = $Filter -join ' OR '
+            $Query = "select * from dbo.tblTeams WHERE $Filter"
         }
-        If ($GUID)
+        elseif ($GUID)
         {
             $Query = "select * from dbo.tblTeams WHERE GUID = '$($GUID.tostring())'"
         }
@@ -1175,7 +1085,9 @@ function Get-RESAMTeam
 function Get-RESAMAudit
 {
     [CmdletBinding(DefaultParameterSetName='Default')]
+
     param (
+        #Query specific action only
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='Default',
                    Position = 0)]
@@ -1186,6 +1098,7 @@ function Get-RESAMAudit
         [string]
         $Action,
 
+        #From what time/date
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='TimeSpan',
                    Position = 1)]
@@ -1194,6 +1107,7 @@ function Get-RESAMAudit
         [datetime]
         $StartDate,
 
+        #To time/date
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='TimeSpan',
                    Position = 2)]
@@ -1202,6 +1116,7 @@ function Get-RESAMAudit
         [datetime]
         $EndDate,
 
+        #Audits from a single account
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='Default',
                    Position = 3)]
@@ -1211,6 +1126,7 @@ function Get-RESAMAudit
         [string]
         $WindowsAccount,
 
+        #Limit result
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    ParameterSetName='Default')]
         [int]
@@ -1227,15 +1143,15 @@ function Get-RESAMAudit
     process
     {
         $Query = "select $LastNr strObjectDescription,
-strAction,
-strActionDescription,
-dtmDateTime,
-strWindowsAccount,
-strWISDOMAccount,
-strComputerName,
-strComputerDomain,
-strComputerIP,
-strComputerMAC from dbo.tblAudits"
+        strAction,
+        strActionDescription,
+        dtmDateTime,
+        strWindowsAccount,
+        strWISDOMAccount,
+        strComputerName,
+        strComputerDomain,
+        strComputerIP,
+        strComputerMAC from dbo.tblAudits"
 
         $Filter = @()
         If ($Action)
@@ -2757,5 +2673,5 @@ function New-RESAMJob {
             'InvokeRunBook' {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -InvokedByRunbook | Get-RESAMMasterJob -Full -WA 0}
             Default         {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -Full -WA 0}
         }
-    }
+	}
 }
