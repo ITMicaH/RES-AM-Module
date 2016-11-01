@@ -150,6 +150,15 @@ function ConvertTo-RESAMObject
                     $Value = ConvertTo-LocalTime $Value
                 }
             }
+            If ($InputObject.$Property -is [string])
+            {
+                Try
+                {
+                    $Value = $Value.substring(0,1).toupper() + $Value.substring(1)
+                }
+                catch{}
+            }
+            $NewProp = $NewProp.substring(0,1).toupper() + $NewProp.substring(1)
             $ht.Add($NewProp,$Value)
         }
         $Object = New-Object -TypeName psobject -Property $ht
@@ -1103,7 +1112,7 @@ function Get-RESAMAudit
     )
     begin
     {
-        If ($Last -eq 1000 -and !$StartDate -and !$EndDate)
+        If (!$PSBoundParameters.ContainsKey('Last') -and !$StartDate -and !$EndDate)
         {
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
@@ -1232,16 +1241,15 @@ function Get-RESAMDispatcher
 .PARAMETER Full
     Retreive full information (Parameter information etc.).
 .EXAMPLE
-    Get-RESAMModule -Name '*WSUS*'
-    Displays default information on RES Automation Manager Modules 
-    that have 'WSUS' in the name.
+Get-RESAMModule -Name '*WSUS*'
+Displays default information on RES Automation Manager Modules that have 'WSUS' in the name.
 .EXAMPLE
-    Get-RESAMModule -Name 'Get PC Info' -Full
-    Displays full information on RES Automation Manager Module 'Get PC Info'.
+Get-RESAMModule -Name 'Get PC Info' -Full
+Displays full information on RES Automation Manager Module 'Get PC Info'.
 .NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
+Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015
 .LINK
    http://itmicah.wordpress.com
 #>
@@ -1783,7 +1791,7 @@ function Get-RESAMMasterJob
     )
     begin
     {
-        If ($Last -eq 1000 -and !$MasterJobGUID -and $Status -ne 'Active' -and !$StartDate)
+        If (!$PSBoundParameters.ContainsKey('Last') -and !$MasterJobGUID)
         {
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
@@ -1837,6 +1845,7 @@ function Get-RESAMMasterJob
         }
         If ($Status)
         {
+            Write-Verbose "Filtering jobs on status '$Status'..."
             switch ($Status)
             {
                 'On Hold'               {$StatusNr = -1}
@@ -1852,6 +1861,14 @@ function Get-RESAMMasterJob
                 'Skipped'               {$StatusNr = 9}
             }
             $Filter += "lngStatus = $StatusNr"
+        }
+        else
+        {
+            Write-Verbose 'No status specified. Skipping active masterjobs...'
+            foreach ($StatusNr in -1..2)
+            {
+                $Filter += "lngStatus <> $StatusNr"
+            }
         }
         If ($StartDate)
         {
@@ -1875,110 +1892,6 @@ function Get-RESAMMasterJob
         }
     }
 }
-
-<#
-function Get-RESAMJobTask
-{
-    [CmdletBinding()]
-    param (
-        [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 0)]
-        [Alias('strDescription')]
-        [string]
-        $Description,
-
-        [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 1)]
-        [Alias('MasterJobGUID')]
-        [guid]
-        $GUID,
-
-        [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 2)]
-        [Alias('Agent')]
-        [Alias('Team')]
-        [string]
-        $Who,
-
-        [Parameter(ValueFromPipelineByPropertyName=$true,
-                   Position = 3)]
-        [guid]
-        $ModuleGUID,
-        
-        [switch]
-        $Scheduled,
-
-        [switch]
-        $Active,
-
-        [switch]
-        $IncludeChildJobs,
-
-        [int]
-        $Last = 1000,
-
-        [switch]
-        $Full
-    )
-    begin
-    {
-        If ($Last -eq 1000)
-        {
-            Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
-        }
-        $LastNr = "TOP $Last"
-    }
-    process
-    {
-        $Filter = @()
-        If ($Scheduled)
-        {
-            $Filter += "(lngStatus = 0 OR lngStatus = -1)"
-            $Filter += "RecurringJobGUID IS NULL"
-        }
-        If ($ModuleGUID)
-        {
-            $Filter += "ModuleGUID = '$ModuleGUID'"
-        }
-        IF (!$IncludeChildJobs)
-        {
-            $Filter += "lngJobInvoker <> 9"
-        }
-        If ($GUID -and !$ModuleGUID)
-        {
-            Write-Verbose "Running query based on GUID $GUID."
-            $Filter += "MasterJobGUID = '$($GUID.tostring())'"
-        }
-        Elseif ($Description -and !$ModuleGUID)
-        {
-            Write-Verbose "Running query based on description '$Description'."
-            $Filter += "strDescription LIKE '$($Description.replace('*','%'))'"
-        }
-        If ($Who)
-        {
-            If ($Who -notmatch '\*')
-            {
-                $Who = "*$Who*" #Jobs can have multiple agents
-            }
-            $Filter += "strWho LIKE '$($Who.Replace('*','%'))'"
-        }
-        If ($Active)
-        {
-            $Filter += "lngStatus = 1"
-        }
-
-        $Query = "select $LastNr * from dbo.tblMasterJob"
-        If ($Filter)
-        {
-            $Filter = $Filter -join ' AND '
-            $Query = "$Query WHERE $Filter"
-        }
-
-        $Query = "$Query order by dtmStartDateTime DESC"
-        Invoke-SQLQuery $Query -Type Job -Full:$Full | Optimize-RESAMJob
-    }
-}
-#>
 
 <#
 .Synopsis
@@ -2063,7 +1976,7 @@ function Get-RESAMJob
     )
     begin
     {
-        If ($Last -eq 1000)
+        If (!$PSBoundParameters.ContainsKey('Last'))
         {
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
@@ -2101,6 +2014,7 @@ function Get-RESAMJob
         }
         If ($Status)
         {
+            Write-Verbose "Filtering jobs on status '$Status'..."
             switch ($Status)
             {
                 'On Hold'               {$StatusNr = -1}
@@ -2116,6 +2030,14 @@ function Get-RESAMJob
                 'Skipped'               {$StatusNr = 9}
             }
             $Filter += "lngStatus = $StatusNr"
+        }
+        else
+        {
+            Write-Verbose 'No status specified. Skipping active jobs...'
+            foreach ($StatusNr in -1..2)
+            {
+                $Filter += "lngStatus <> $StatusNr"
+            }
         }
 
         $Query = "select $LastNr * from dbo.tblJobs"
@@ -2188,7 +2110,7 @@ function Get-RESAMQueryResult
     )
     begin
     {
-        If ($Last -eq 1000)
+        If (!$PSBoundParameters.ContainsKey('Last'))
         {
             Write-Warning "Only the last 1000 jobs will be displayed. If more are required use the '-Last' parameter."
         }
