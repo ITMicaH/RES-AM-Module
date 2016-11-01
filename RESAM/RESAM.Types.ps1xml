@@ -61,7 +61,19 @@
 	  </ScriptMethod>
 	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
-		<Script>Param([int]$Last = 1000); $this | Get-RESAMJob -Last $Last</Script>
+		<Script>
+			Param([int]$Last)
+			
+			If ($PSBoundParameters.ContainsKey('Last'))
+			{
+				$Properties = @{Last = $Last}
+			}
+			$this | Get-RESAMJob @Properties
+		</Script>
+	  </ScriptMethod>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Name</Script>
 	  </ScriptMethod>
 	  <AliasProperty>
 		<Name>AgentName</Name>
@@ -79,7 +91,7 @@
         <Members>
           <NoteProperty>
             <Name>DefaultDisplayProperty</Name>
-            <Value>ModuleName</Value>
+            <Value>Name</Value>
           </NoteProperty>
           <PropertySet>
             <Name>DefaultDisplayPropertySet</Name>
@@ -119,6 +131,10 @@
 		<Name>GetFullDetails</Name>
 		<Script>$this | Get-RESAMTeam -Full</Script>
 	  </ScriptMethod>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Name</Script>
+	  </ScriptMethod>
 	  <AliasProperty>
 		<Name>TeamName</Name>
 		<ReferencedMemberName>
@@ -141,9 +157,10 @@
             <Name>DefaultDisplayPropertySet</Name>
             <ReferencedProperties>
               <Name>Name</Name>
-              <Name>GUID</Name>
 			  <Name>Enabled</Name>
+			  <Name>RequiredParameters</Name>
               <Name>FolderName</Name>
+			  <Name>ModuleTasks</Name>
             </ReferencedProperties>
           </PropertySet>
           <PropertySet>
@@ -183,7 +200,7 @@
 						    $ListItems += $Item
 					    }
                     }
-					[pscustomobject]@{
+					$Object = [pscustomobject]@{
 						Name = $_.name
 						Description = $_.description
 						Hint = $_.hint
@@ -191,6 +208,8 @@
 						Default = $_.value1
 						ListItems = $ListItems
 					}
+					$Object.PSObject.TypeNames.Insert(0,"RES.AutomationManager.Parameter")
+					$Object
 				}
 			}
 			else
@@ -204,7 +223,9 @@
 		<GetScriptBlock>
 			If ($this.Tasks.tasks.task)
 			{
-				$Required = $this.Tasks.tasks.task.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
+				$Required = $this.Tasks.tasks.task.parameters.param | ?{
+					$_.inputtiming.schedulejob.'#text' -eq 'Yes'
+				}
 				$Required | %{
 					switch ($_.Type)
 					{
@@ -229,7 +250,7 @@
 						    $ListItems += $Item
 					    }
                     }
-					[pscustomobject]@{
+					$Object = [pscustomobject]@{
 						Name = $_.name
 						Description = $_.description
 						Hint = $_.hint
@@ -237,6 +258,8 @@
 						Default = $_.value1
 						ListItems = $ListItems
 					}
+					$Object.PSObject.TypeNames.Insert(0,"RES.AutomationManager.Parameter")
+					$Object
 				}
 			}
 			else
@@ -255,7 +278,42 @@
 	  </ScriptMethod>
 	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
-		<Script>$this | Get-RESAMMasterJob</Script>
+		<Script>
+			Param([int]$Last)
+			
+			If ($PSBoundParameters.ContainsKey('Last'))
+			{
+				$Properties = @{Last = $Last}
+			}
+			$this | Get-RESAMMasterJob @Properties
+		</Script>
+	  </ScriptMethod>
+	  <ScriptProperty>
+		<Name>ModuleTasks</Name>
+		<GetScriptBlock>
+			If ($this.Tasks.tasks.task)
+			{
+				$Tasks = $This.Tasks.tasks.task | ?{!$_.Hidden}
+				foreach ($Task in $Tasks)
+				{
+					$ModuleTask = $Task.properties | ConvertTo-RESAMObject -Type Task
+					If ($Task.Settings)
+					{
+						$Settings = $Task.settings | ConvertTo-RESAMObject -Type TaskSetting
+						$ModuleTask | Add-Member -MemberType NoteProperty -Name Settings -Value $Settings
+					}
+					$ModuleTask
+				}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Name</Script>
 	  </ScriptMethod>
     </Members>
   </Type>
@@ -275,138 +333,7 @@
               <Name>Name</Name>
               <Name>GUID</Name>
 			  <Name>Enabled</Name>
-              <Name>FolderName</Name>
-            </ReferencedProperties>
-          </PropertySet>
-          <PropertySet>
-            <Name>DefaultKeyPropertySet</Name>
-            <ReferencedProperties>
-              <Name>Name</Name>
-            </ReferencedProperties>
-          </PropertySet>
-        </Members>
-      </MemberSet>
-	  <ScriptProperty>
-		<Name>Parameters</Name>
-		<GetScriptBlock>
-			If ($this.Properties.properties)
-			{
-				$this.Properties.properties.parameters.param| %{
-					switch ($_.Type)
-					{
-						0 {$Type = 'Text'}
-						1 {$Type = 'List'}
-						2 {$Type = 'Credentials'}
-						3 {$Type = 'Multi-Select List'}
-						4 {$Type = 'Multi-Line Text'}
-						5 {$Type = 'Password'}
-					}
-					$ListItems = @()
-					$Items = $_.value2.Split(';')
-					$Descr = $_.value3.Split(';')
-                    If ($Items)
-                    {
-					    for ($i = 0; $i -lt $Items.Count; $i++)
-					    {
-                            $Item = [pscustomobject]@{
-                                Value = $Items[$i]
-                                Description = $Descr[$i]
-                            }
-						    $ListItems += $Item
-					    }
-                    }
-					[pscustomobject]@{
-						Name = $_.name
-						Description = $_.description
-						Hint = $_.hint
-						Type = $Type
-						Default = $_.value1
-						ListItems = $ListItems
-					}
-				}
-			}
-			else
-			{
-				"Use '-Full' parameter for details"
-			}
-		</GetScriptBlock>
-	  </ScriptProperty>
-	  <ScriptProperty>
-		<Name>RequiredParameters</Name>
-		<GetScriptBlock>
-			If ($this.Properties.properties)
-			{
-				$Required = $this.Properties.properties.parameters.param | ?{$_.inputtiming.schedulejob.'#text' -eq 'Yes'}
-				$Required | %{
-					switch ($_.Type)
-					{
-						0 {$Type = 'Text'}
-						1 {$Type = 'List'}
-						2 {$Type = 'Credentials'}
-						3 {$Type = 'Multi-Select List'}
-						4 {$Type = 'Multi-Line Text'}
-						5 {$Type = 'Password'}
-					}
-					$ListItems = @()
-					$Items = $_.value2.Split(';')
-					$Descr = $_.value3.Split(';')
-                    If ($Items)
-                    {
-					    for ($i = 0; $i -lt $Items.Count; $i++)
-					    {
-                            $Item = [pscustomobject]@{
-                                Value = $Items[$i]
-                                Description = $Descr[$i]
-                            }
-						    $ListItems += $Item
-					    }
-                    }
-					[pscustomobject]@{
-						Name = $_.name
-						Description = $_.description
-						Hint = $_.hint
-						Type = $Type
-						Default = $_.value1
-						ListItems = $ListItems
-					}
-				}
-			}
-			else
-			{
-				"Use '-Full' parameter for details"
-			}
-		</GetScriptBlock>
-	  </ScriptProperty>
-	  <ScriptProperty>
-		<Name>ProjectGUID</Name>
-		<GetScriptBlock>$this.GUID</GetScriptBlock>
-	  </ScriptProperty>
-	  <ScriptMethod>
-		<Name>GetFullDetails</Name>
-		<Script>$this | Get-RESAMProject -Full</Script>
-	  </ScriptMethod>
-	  <ScriptMethod>
-		<Name>GetJobHistory</Name>
-		<Script>$this | Get-RESAMMasterJob -wa 0</Script>
-	  </ScriptMethod>
-    </Members>
-  </Type>
-  <Type>
-    <Name>RES.AutomationManager.RunBook</Name>
-    <Members>
-      <MemberSet>
-        <Name>PsStandardMembers</Name>
-        <Members>
-          <NoteProperty>
-            <Name>DefaultDisplayProperty</Name>
-            <Value>RunBook</Value>
-          </NoteProperty>
-          <PropertySet>
-            <Name>DefaultDisplayPropertySet</Name>
-            <ReferencedProperties>
-              <Name>Name</Name>
-              <Name>GUID</Name>
-			  <Name>Enabled</Name>
+			  <Name>RequiredParameters</Name>
               <Name>FolderName</Name>
             </ReferencedProperties>
           </PropertySet>
@@ -447,7 +374,7 @@
 						    $ListItems += $Item
 					    }
                     }
-					[pscustomobject]@{
+					$Object = [pscustomobject]@{
 						Name = $_.name
 						Description = $_.description
 						Hint = $_.hint
@@ -455,6 +382,8 @@
 						Default = $_.value1
 						ListItems = $ListItems
 					}
+					$Object.PSObject.TypeNames.Insert(0,"RES.AutomationManager.Parameter")
+					$Object
 				}
 			}
 			else
@@ -493,7 +422,7 @@
 						    $ListItems += $Item
 					    }
                     }
-					[pscustomobject]@{
+					$Object = [pscustomobject]@{
 						Name = $_.name
 						Description = $_.description
 						Hint = $_.hint
@@ -501,6 +430,159 @@
 						Default = $_.value1
 						ListItems = $ListItems
 					}
+					$Object.PSObject.TypeNames.Insert(0,"RES.AutomationManager.Parameter")
+					$Object
+				}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>ProjectGUID</Name>
+		<GetScriptBlock>$this.GUID</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptMethod>
+		<Name>GetFullDetails</Name>
+		<Script>$this | Get-RESAMProject -Full</Script>
+	  </ScriptMethod>
+	  <ScriptMethod>
+		<Name>GetJobHistory</Name>
+		<Script>
+			Param([int]$Last)
+			
+			If ($PSBoundParameters.ContainsKey('Last'))
+			{
+				$Properties = @{Last = $Last}
+			}
+			$this | Get-RESAMMasterJob @Properties
+		</Script>
+	  </ScriptMethod>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Name</Script>
+	  </ScriptMethod>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.RunBook</Name>
+    <Members>
+      <MemberSet>
+        <Name>PsStandardMembers</Name>
+        <Members>
+          <NoteProperty>
+            <Name>DefaultDisplayProperty</Name>
+            <Value>RunBook</Value>
+          </NoteProperty>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+              <Name>GUID</Name>
+			  <Name>Enabled</Name>
+			  <Name>RequiredParameters</Name>
+              <Name>FolderName</Name>
+            </ReferencedProperties>
+          </PropertySet>
+          <PropertySet>
+            <Name>DefaultKeyPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+	  <ScriptProperty>
+		<Name>Parameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties)
+			{
+				$this.Properties.properties.parameters.param | %{
+					switch ($_.Type)
+					{
+						0 {$Type = 'Text'}
+						1 {$Type = 'List'}
+						2 {$Type = 'Credentials'}
+						3 {$Type = 'Multi-Select List'}
+						4 {$Type = 'Multi-Line Text'}
+						5 {$Type = 'Password'}
+					}
+					$ListItems = @()
+					$Items = $_.value2.Split(';')
+					$Descr = $_.value3.Split(';')
+                    If ($Items)
+                    {
+					    for ($i = 0; $i -lt $Items.Count; $i++)
+					    {
+                            $Item = [pscustomobject]@{
+                                Value = $Items[$i]
+                                Description = $Descr[$i]
+                            }
+						    $ListItems += $Item
+					    }
+                    }
+					$Object = [pscustomobject]@{
+						Name = $_.name
+						Description = $_.description
+						Hint = $_.hint
+						Type = $Type
+						Default = $_.value1
+						ListItems = $ListItems
+					}
+					$Object.PSObject.TypeNames.Insert(0,"RES.AutomationManager.Parameter")
+					$Object
+				}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>RequiredParameters</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties)
+			{
+				$Required = $this.Properties.properties.parameters.param | ?{
+					$_.inputtiming.schedulejob.'#text' -eq 'Yes'
+				}
+				$Required | %{
+					switch ($_.Type)
+					{
+						0 {$Type = 'Text'}
+						1 {$Type = 'List'}
+						2 {$Type = 'Credentials'}
+						3 {$Type = 'Multi-Select List'}
+						4 {$Type = 'Multi-Line Text'}
+						5 {$Type = 'Password'}
+					}
+					$ListItems = @()
+					$Items = $_.value2.Split(';')
+					$Descr = $_.value3.Split(';')
+                    If ($Items)
+                    {
+					    for ($i = 0; $i -lt $Items.Count; $i++)
+					    {
+                            $Item = [pscustomobject]@{
+                                Value = $Items[$i]
+                                Description = $Descr[$i]
+                            }
+						    $ListItems += $Item
+					    }
+                    }
+					$Object = [pscustomobject]@{
+						Name = $_.name
+						Description = $_.description
+						Hint = $_.hint
+						Type = $Type
+						Default = $_.value1
+						ListItems = $ListItems
+					}
+					$Object.PSObject.TypeNames.Insert(0,"RES.AutomationManager.Parameter")
+					$Object
 				}
 			}
 			else
@@ -519,7 +601,56 @@
 	  </ScriptMethod>
 	  <ScriptMethod>
 		<Name>GetJobHistory</Name>
-		<Script>$this | Get-RESAMMasterJob -wa 0</Script>
+		<Script>
+			Param([int]$Last)
+			
+			If ($PSBoundParameters.ContainsKey('Last'))
+			{
+				$Properties = @{Last = $Last}
+			}
+			$this | Get-RESAMMasterJob @Properties
+		</Script>
+	  </ScriptMethod>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Name</Script>
+	  </ScriptMethod>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.Dispatcher</Name>
+    <Members>
+      <MemberSet>
+        <Name>PsStandardMembers</Name>
+        <Members>
+          <NoteProperty>
+            <Name>DefaultDisplayProperty</Name>
+            <Value>Name</Value>
+          </NoteProperty>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+              <Name>Version</Name>
+			  <Name>OSName</Name>
+              <Name>Status</Name>
+            </ReferencedProperties>
+          </PropertySet>
+          <PropertySet>
+            <Name>DefaultKeyPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Name</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+	  <ScriptMethod>
+		<Name>GetFullDetails</Name>
+		<Script>$this | Get-RESAMDispatcher -Full</Script>
+	  </ScriptMethod>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Name</Script>
 	  </ScriptMethod>
     </Members>
   </Type>
@@ -704,12 +835,60 @@
 			}
 		</Script>
 	  </ScriptMethod>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Description</Script>
+	  </ScriptMethod>
 	  <AliasProperty>
 		<Name>AgentName</Name>
 		<ReferencedMemberName>
 			Name
 		</ReferencedMemberName>
 	  </AliasProperty>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.Task</Name>
+    <Members>
+      <MemberSet>
+        <Name>PsStandardMembers</Name>
+        <Members>
+          <NoteProperty>
+            <Name>DefaultDisplayProperty</Name>
+            <Value>Description</Value>
+          </NoteProperty>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Description</Name>
+              <Name>Type</Name>
+			  <Name>Enabled</Name>
+			  <Name>OnError</Name>
+              <Name>Comments</Name>
+			  <Name>Settings</Name>
+            </ReferencedProperties>
+          </PropertySet>
+          <PropertySet>
+            <Name>DefaultKeyPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Description</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Description</Script>
+	  </ScriptMethod>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.Parameter</Name>
+    <Members>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Name</Script>
+	  </ScriptMethod>
     </Members>
   </Type>
 </Types>
