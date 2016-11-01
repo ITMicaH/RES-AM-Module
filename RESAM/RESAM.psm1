@@ -114,7 +114,7 @@ function ConvertTo-RESAMObject
         $ht = @{}
         foreach ($Property in $Properties)
         {
-            $NewProp = $Property -replace '^(str|lng|ysn|dtm|img)',''
+            $NewProp = $Property -replace '^(str|lng|ysn|dtm|img)','' -replace '^Obj',''
             $Value = $InputObject.$Property
             If ($NewProp -eq 'Status')
             {
