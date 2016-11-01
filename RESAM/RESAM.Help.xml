@@ -1937,7 +1937,7 @@ Creation Date : 25-6-2015</maml:para>
 	<command:details>
 		<command:name>Get-RESAMModule</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager Module object.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -1947,39 +1947,39 @@ Creation Date : 25-6-2015</maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager Module objects from the RES Automation Manager Database.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMModule</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Name</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the module.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>GUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the module.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Full</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Retreive full information (Parameter information etc.).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Name</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of the module.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1991,7 +1991,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>GUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the module.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -2003,7 +2003,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Full</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Retreive full information (Parameter information etc.).</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -2042,10 +2042,52 @@ Creation Date : 25-6-2015</maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get module by name using a wildcard  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMModule -Name &apos;*WSUS*&apos;</dev:code>
+			<dev:remarks>
+				<maml:para>Displays default information on RES Automation Manager Modules that have &#39;WSUS&#39; in the name.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get full module info by name  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMModule -Name &apos;Get PC Info&apos; -Full</dev:code>
+			<dev:remarks>
+				<maml:para>Displays full information on RES Automation Manager Module &#39;Get PC Info&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
