@@ -109,13 +109,26 @@ function ConvertTo-RESAMObject
     }
     Process
     {
-        $Properties = $InputObject | Get-Member -MemberType Property |
+        switch ($InputObject.GetType().Name)
+        {
+            PSCustomObject {$MemberType = 'NoteProperty'}
+            Default        {$MemberType = 'Property'}
+        }
+        $Properties = $InputObject | Get-Member -MemberType $MemberType |
          select -ExpandProperty Name
         $ht = @{}
         foreach ($Property in $Properties)
         {
             $NewProp = $Property -replace '^(str|lng|ysn|dtm|img)','' -replace '^Obj',''
             $Value = $InputObject.$Property
+            If ($Type -ne 'Parameter')
+            {
+                switch ($Value)
+                {
+                    yes {$Value = $true}
+                    no  {$Value = $False}
+                }
+            }
             If ($NewProp -eq 'Status')
             {
                 switch ($Value)
@@ -124,15 +137,18 @@ function ConvertTo-RESAMObject
                     '1' {$Value = 'Online'}
                 }
             }
-            if ($InputObject.$Property.GetType().Name -eq 'Byte[]')
+            if ($InputObject.$Property)
             {
-                If ($Full)
+                if ($InputObject.$Property.GetType().Name -eq 'Byte[]')
                 {
-                    $Value = ConvertFrom-ByteArray $Value
-                }
-                else
-                {
-                    $Value = "Use '-Full' parameter for details"
+                    If ($Full)
+                    {
+                        $Value = ConvertFrom-ByteArray $Value
+                    }
+                    else
+                    {
+                        $Value = "Use '-Full' parameter for details"
+                    }
                 }
             }
             If ($Property -eq 'imgWho')
@@ -1228,31 +1244,7 @@ function Get-RESAMDispatcher
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Module objects.
-.DESCRIPTION
-    Get RES Automation Manager Module objects from the RES Automation 
-    Manager Database.
-.PARAMETER Name
-    Name of the Module. Wildcards are allowed.
-.PARAMETER GUID
-    GUID of the Module.
-.PARAMETER Full
-    Retreive full information (Parameter information etc.).
-.EXAMPLE
-Get-RESAMModule -Name '*WSUS*'
-Displays default information on RES Automation Manager Modules that have 'WSUS' in the name.
-.EXAMPLE
-Get-RESAMModule -Name 'Get PC Info' -Full
-Displays full information on RES Automation Manager Module 'Get PC Info'.
-.NOTES
-Author        : Michaja van der Zouwen
-Version       : 1.0
-Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMModule
 {
     [CmdletBinding()]
@@ -1293,32 +1285,7 @@ function Get-RESAMModule
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Project objects.
-.DESCRIPTION
-    Get RES Automation Manager Project objects from the RES Automation 
-    Manager Database.
-.PARAMETER Name
-    Name of the Project. Wildcards are allowed.
-.PARAMETER GUID
-    GUID of the Project.
-.PARAMETER Full
-    Retreive full information (Parameter information etc.).
-.EXAMPLE
-    Get-RESAMProject -Name *User*
-    Displays default information on RES Automation Manager Projects
-    whose names contain the word 'User'.
-.EXAMPLE
-    Get-RESAMProject -Name 'Install WSUS patches' -Full
-    Displays full information on RES Automation Manager Project 'Install WSUS patches'.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMProject
 {
     [CmdletBinding()]
@@ -1358,32 +1325,7 @@ function Get-RESAMProject
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager RunBook objects.
-.DESCRIPTION
-    Get RES Automation Manager RunBook objects from the RES Automation 
-    Manager Database.
-.PARAMETER Name
-    Name of the RunBook. Wildcards are allowed.
-.PARAMETER GUID
-    GUID of the RunBook.
-.PARAMETER Full
-    Retreive full information (Parameter information etc.).
-.EXAMPLE
-    Get-RESAMRunBook -Name Execute*
-    Displays default information on RES Automation Manager RunBooks
-    whose names start with 'Execute'.
-.EXAMPLE
-    Get-RESAMRunBook -Name 'Deploy standard software' -Full
-    Displays full information on RES Automation Manager RunBook 'Deploy standard software'.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMRunBook
 {
     [CmdletBinding()]
@@ -1424,31 +1366,7 @@ function Get-RESAMRunBook
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Resource objects.
-.DESCRIPTION
-    Get RES Automation Manager Resource objects from the RES Automation 
-    Manager Database.
-.PARAMETER Name
-    Name of the Resource. Wildcards are allowed.
-.PARAMETER GUID
-    GUID of the Resource.
-.PARAMETER Full
-    Retreive full information (Type information etc.).
-.EXAMPLE
-    Get-RESAMResource -Name *.msi
-    Displays default information on RES Automation Manager Resources that are MSI's.
-.EXAMPLE
-    Get-RESAMResource -Name 'RESWM2014.exe' -Full
-    Displays full information on RES Automation Manager Resource 'RESWM2014.exe'.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMResource
 {
     [CmdletBinding()]
@@ -1488,33 +1406,7 @@ function Get-RESAMResource
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Connector objects.
-.DESCRIPTION
-    Get RES Automation Manager Connector objects from the RES Automation 
-    Manager Database.
-.PARAMETER Target
-    Name of the host that hosts the connector. Wildcards are allowed.
-.PARAMETER GUID
-    GUID of the Connector.
-.PARAMETER Type
-    Type of the Connector.
-.EXAMPLE
-    Get-RESAMConnector -Target *exc*
-    Displays default information on RES Automation Manager Connectors
-    whose target names contain 'exc'.
-.EXAMPLE
-    Get-RESAMConnector -Type RemoteHosts
-    Displays information on RES Automation Manager Connectors of the
-    'Remote Host' type (e.g. Secure Shell).
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMConnector
 {
     [CmdletBinding()]
@@ -1575,29 +1467,7 @@ function Get-RESAMConnector
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Console objects.
-.DESCRIPTION
-    Get RES Automation Manager Console objects from the RES Automation 
-    Manager Database.
-.PARAMETER Name
-    Name of the host where a console is installed. Wildcards are allowed.
-.PARAMETER GUID
-    GUID of the Console.
-.PARAMETER Full
-    Retreive full information (Adapter information etc.).
-.EXAMPLE
-    Get-RESAMConsole -Name SRV-*
-    Displays information on RES Automation Manager Consoles
-    whose names start with 'SRV'.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMConsole
 {
     [CmdletBinding()]
@@ -1645,22 +1515,7 @@ function Get-RESAMConsole
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Database level.
-.DESCRIPTION
-    Get RES Automation Manager Database level from the RES Automation 
-    Manager Database.
-.EXAMPLE
-    $DBLevel = Get-RESAMDatabaseLevel
-    Stores the data base level in a variable called 'DBLevel'.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMDatabaseLevel
 {
     [CmdletBinding()]
@@ -1674,61 +1529,7 @@ function Get-RESAMDatabaseLevel
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager MasterJob objects.
-.DESCRIPTION
-    Get RES Automation Manager MasterJob objects from the RES Automation 
-    Manager Database. A MasterJob is a scheduled Module, Project or Runbook.
-.PARAMETER Description
-    Description of the MasterJob. Wildcards are allowed.
-.PARAMETER GUID
-    GUID of the MasterJob.
-.PARAMETER Who
-    The Team(s) or Agent(s) the job was scheduled on.
-.PARAMETER ModuleGUID
-    The GUID of the Module, Project or Runbook that was scheduled.
-.PARAMETER Status
-    Only returns MasterJobs that are in a certain state.
-.PARAMETER StartDate
-    Returns a single MasterJob with a certain startdate/time. Input
-    can be either a string or a DateTime object.
-.PARAMETER InvokedByRunbook
-    By default only main MasterJobs are returned. These are the
-    jobs as shown in the console. With this parameter you can
-    query jobs that were invoked by a runbook. In the console 
-    these can be found by opening a runbook job and clicking the 
-    'Jobs' tab.
-.PARAMETER Last
-    By default only the last 1000 jobs will be returned. If more
-    are required use this parameter to specify the correct amount.
-.PARAMETER Full
-    Retreive full information (Task information etc.).
-.EXAMPLE
-    Get-RESAMMasterJob -Description Create*
-    Displays information on RES Automation Manager MasterJobs
-    whose descriptions start with 'Create'.
-.EXAMPLE
-    Get-RESAMMasterJob -Who 'Win7-Clients'
-    Displays information on RES Automation Manager MasterJobs where
-    the targets contained the 'Win7-Clients' team.
-.EXAMPLE
-    Get-RESAMMasterJob -Status Scheduled -Full
-    Display full information on all MasterJobs with status 'Scheduled'.
-.EXAMPLE
-    Get-RESAMMasterJob -Description 'A worthy Runbook' -InvokedByRunbook -Last 20
-    Display basic information on the last 20 Masterjobs that were 
-    invoked by a RunBook with a description of 'A worthy Runbook'.
-.EXAMPLE
-    Get-RESAMMasterJob -StartDate '19-5-2016 14:06:42' -Full
-    Display full information on the MasterJobs with startdate '19-5-2016 14:06:42'.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMMasterJob
 {
     [CmdletBinding()]
@@ -1893,45 +1694,7 @@ function Get-RESAMMasterJob
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager Job objects.
-.DESCRIPTION
-    Get RES Automation Manager Job objects from the RES Automation 
-    Manager Database. A Job is a child to the MasterJob and contains
-    the tasks run by the MasterJob per agent.
-.PARAMETER Agent
-    An agent a job has been scheduled to. Wildcards are allowed.
-.PARAMETER MasterJobGUID
-    GUID of the MasterJob you wish to view the childjobs of.
-.PARAMETER JobGUID
-    The GUID of the job itself.
-.PARAMETER Status
-    Returns jobs with a certain status.
-.PARAMETER Last
-    By default only the last 1000 jobs will be returned. If more
-    are required use this parameter to specify the correct amount or
-    enter 0 for all jobs.
-.PARAMETER Full
-    Retreive full information (Task information etc.).
-.EXAMPLE
-    Get-RESAMMasterJob -Description Create* | Get-RESAMJob
-    Displays information on RES Automation Manager Jobs of the
-    MasterJobs whose descriptions start with 'Create'.
-.EXAMPLE
-    Get-RESAMMasterJob -Description 'Start Services' | Get-RESAMJob -Status Active
-    Displays information on RES Automation Manager Jobs of 
-    MasterJob 'Start Services' that are currently active.
-.EXAMPLE
-    Get-RESAMJob -Agent PC1234 -Full -Last 10
-    Display full information on the last 10 Jobs that ran on agent 'PC1234'.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMJob
 {
     [CmdletBinding()]
@@ -2056,34 +1819,7 @@ function Get-RESAMJob
     }
 }
 
-<#
-.Synopsis
-    Get RES Automation Manager query results.
-.DESCRIPTION
-    Get RES Automation Manager query results from the RES Automation 
-    Manager Database. A query is a module task of the 'Query' type. 
-.PARAMETER Agent
-    An agent a query has been scheduled to. Wildcards are allowed.
-.PARAMETER GUID
-    The GUID of the query itself.
-.PARAMETER MasterJobGUID
-    GUID of the MasterJob you wish to view the query results of.
-.PARAMETER Last
-    By default only the last 1000 jobs will be returned. If more
-    are required use this parameter to specify the correct amount.
-.EXAMPLE
-    Get-RESAMMasterJob -Description 'Query Services' | Get-RESAMQueryResult
-    Displays the result of the MasterJobs whose description is 'Query Services'.
-.EXAMPLE
-    Get-RESAMQueryResult -Agent PC1234 -Last 50
-    Displays the last 50 query results on agent PC1234.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
+#.ExternalHelp RESAM.Help.xml
 function Get-RESAMQueryResult
 {
     [CmdletBinding()]
@@ -2192,69 +1928,9 @@ function Get-RESAMLog
     }
 }
 
-<#
-.Synopsis
-    Schedules a new job for a RES Automation Manager module, project or runbook.
-.DESCRIPTION
-    Schedules a new job for a RES Automation Manager module, project or runbook.
-    This command makes use of the REST API and will require a dispatcher with the
-    WebAPI enabled. This also requires a RES AM account that has sufficient rights
-    to read modules, projects and runbooks and can schedule jobs.
-.PARAMETER Dispatcher
-    Name of the dispatcher with the WebAPI enabled.
-.PARAMETER Credential
-    The RES AM user account name or it's credentials.
-.PARAMETER Description
-    A description for the job. If not entered the name of the scheduled object
-    will be used.
-.PARAMETER Who
-    The agents or teams the job should run on. Use either a comma separated
-    list of names or an array of agent or team objects.
-.PARAMETER Module
-    Name of a module or module object to schedule.
-.PARAMETER Project
-    Name of a project or project object to schedule.    
-.PARAMETER Runbook
-    Name of a runbook or runbook object to schedule.
-.PARAMETER Start
-    Date/Time the job should start. When omitted the job will be scheduled immediately.
-.PARAMETER LocalTime
-    Use local time (Default).
-.PARAMETER UseWOL
-    Use Wake-on-LAN when the job starts.
-.PARAMETER UseDefaults
-    Use the default values for all required parameters. Cannot be used in combination
-    with the Parameters parameter.
-.PARAMETER Parameters
-    A hashtable of required parameters for the job. When omitted the user
-    will be prompted for required parameter values. You can find the required
-    parameters by using the RequiredParameters property on the module, project
-    or runbook you're scheduling. Cannot be used in combination with the 
-    UseDefaults parameter.
-.EXAMPLE
-    New-RESAMJob -Dispatcher SRV-DISP-001 -Credential APIUser -Description 'New Test Job' -Who PC1234,PC5678 -Module 'Test Module'
-    Schedules the module 'Test Module' to run immediately on agent 'PC1234' and
-    'PC5678' using dispatcher 'SRV-DISP-001' as user 'APIUser'. There will be a
-    prompt for the password.
-.EXAMPLE
-    Get-RESAMAgent | New-RESAMJob -Dispatcher SRV-DISP-001 -Credential $Cred -Description 'New Test Job' -Project 'Test Project' -Start (Get-Date).AddHours(1) -Parameters @{Param1='TEST'}
-    Schedules the project 'Test Project' to run in an hour on all agents
-    using dispatcher 'SRV-DISP-001' with a credential object saved in a variable.
-    Required parameter 'Param1' is set with value 'TEST'.
-.EXAMPLE
-    Get-RESAMAgent NB* | New-RESAMJob -Dispatcher SRV-DISP-001 -Credential $Cred -RunBook $Runbook -Start 11:00PM -UseDefaults
-    Schedules the runbook object in variable $runbook to run at 11:00PM today
-    using dispatcher 'SRV-DISP-001' with a credential object saved in a variable.
-    The description will be set to the name of the runbook and all required 
-    parameters will be set with default values.
-.NOTES
-    Author        : Michaja van der Zouwen
-    Version       : 1.0
-    Creation Date : 25-6-2015
-.LINK
-   http://itmicah.wordpress.com
-#>
-function New-RESAMJob {
+#.ExternalHelp RESAM.Help.xml
+function New-RESAMJob
+{
     [CmdletBinding()]
 	param(
         [Parameter(Mandatory=$True)]
