@@ -882,7 +882,7 @@ NB4321           3    </maml:para>
 	<command:details>
 		<command:name>Get-RESAMConnector</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager Connector objects.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -892,39 +892,39 @@ NB4321           3    </maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager Connector objects from the RES Automation Manager Database.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMConnector</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Target</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the host that hosts the connector.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>GUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the Connector.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
 				<maml:name>Type</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Type of the Connector.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Target</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of the host that hosts the connector.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -936,7 +936,7 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>GUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the Connector.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -948,7 +948,7 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
 			<maml:name>Type</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Type of the Connector.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -987,10 +987,52 @@ NB4321           3    </maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get target by using wildcards  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMConnector -Target *exc*</dev:code>
+			<dev:remarks>
+				<maml:para>Displays default information on RES Automation Manager Connectors whose target names contain &#39;exc&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get connectors by type  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMConnector -Type RemoteHosts</dev:code>
+			<dev:remarks>
+				<maml:para>Displays information on RES Automation Manager Connectors of the &#39;Remote Host&#39; type (e.g. Secure Shell).</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
@@ -1004,7 +1046,7 @@ NB4321           3    </maml:para>
 	<command:details>
 		<command:name>Get-RESAMConsole</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager Console objects.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -1014,39 +1056,39 @@ NB4321           3    </maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager Console objects from the RES Automation Manager Database.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMConsole</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Name</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the host where a console is installed.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>GUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the Console.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Full</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Retreive full information (Adapter information etc.).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Name</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of the host where a console is installed.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1058,7 +1100,7 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>GUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the Console.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -1070,7 +1112,7 @@ NB4321           3    </maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Full</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Retreive full information (Adapter information etc.).</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -1109,10 +1151,52 @@ NB4321           3    </maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get console objects using a wildcard  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMConsole -Name SRV-*</dev:code>
+			<dev:remarks>
+				<maml:para>Displays information on RES Automation Manager Consoles whose names start with &#39;SRV&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get full information on all consoles  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMConsole -Full</dev:code>
+			<dev:remarks>
+				<maml:para>Get full information on all console objects.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
@@ -1126,7 +1210,7 @@ NB4321           3    </maml:para>
 	<command:details>
 		<command:name>Get-RESAMDatabaseLevel</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager Database level.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -1136,7 +1220,7 @@ NB4321           3    </maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager Database level from the RES Automation Manager Database.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
@@ -1173,10 +1257,32 @@ NB4321           3    </maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get database level  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; $DBLevel = Get-RESAMDatabaseLevel</dev:code>
+			<dev:remarks>
+				<maml:para>Stores the data base level in a variable called &#39;DBLevel&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
@@ -1397,7 +1503,7 @@ Creation Date : 25-6-2015</maml:para>
 	<command:details>
 		<command:name>Get-RESAMJob</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager Job objects.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -1407,60 +1513,60 @@ Creation Date : 25-6-2015</maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager Job objects from the RES Automation Manager Database. A Job is a child to the MasterJob and contains the tasks run by the MasterJob per agent.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMJob</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Agent</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>An agent a job has been scheduled to.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>MasterJobGUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the MasterJob you wish to view the childjobs of.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="3">
 				<maml:name>JobGUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The GUID of the job itself.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="3">
 				<maml:name>Status</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Returns jobs with a certain status.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Last</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>By default only the last 1000 jobs will be returned. If more are required use this parameter to specify the correct amount or enter 0 for all jobs.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Full</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Retreive full information (Task information etc.).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Agent</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>An agent a job has been scheduled to.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			<dev:type>
@@ -1472,7 +1578,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>MasterJobGUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the MasterJob you wish to view the childjobs of.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -1484,7 +1590,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="3">
 			<maml:name>JobGUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>The GUID of the job itself.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -1496,7 +1602,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="3">
 			<maml:name>Status</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Returns jobs with a certain status.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1508,19 +1614,19 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Last</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>By default only the last 1000 jobs will be returned. If more are required use this parameter to specify the correct amount or enter 0 for all jobs.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
 			<dev:type>
 				<maml:name>Int32</maml:name>
 				<maml:uri/>
 			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
+			<dev:defaultValue>1000</dev:defaultValue>
 		</command:parameter>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Full</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Retreive full information (Task information etc.).</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -1559,15 +1665,82 @@ Creation Date : 25-6-2015</maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get jobs by masterjob  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMMasterJob -Description Create* | Get-RESAMJob</dev:code>
+			<dev:remarks>
+				<maml:para>Displays information on RES Automation Manager Jobs of the MasterJobs whose descriptions start with &#39;Create&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get active jobs by masterjob  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMMasterJob -Description &apos;Start Services&apos; | Get-RESAMJob -Status Active
+</dev:code>
+			<dev:remarks>
+				<maml:para>Displays information on RES Automation Manager Jobs of MasterJob &#39;Start Services&#39; that are currently active.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get last 10 jobs by agent  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMJob -Agent PC1234 -Full -Last 10</dev:code>
+			<dev:remarks>
+				<maml:para>Display full information on the last 10 Jobs that ran on agent &#39;PC1234&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
 			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
 			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
+		<maml:navigationLink>
+			<maml:linkText>Get-RESAMMasterJob</maml:linkText>
+			<maml:uri></maml:uri>
 		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
@@ -1682,7 +1855,7 @@ Creation Date : 25-6-2015</maml:para>
 	<command:details>
 		<command:name>Get-RESAMMasterJob</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager MasterJob objects.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -1692,88 +1865,89 @@ Creation Date : 25-6-2015</maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager MasterJob objects from the RES Automation Manager Database. A MasterJob is a scheduled Module, Project or Runbook.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMMasterJob</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Description</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Description of the MasterJob.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>MasterJobGUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the MasterJob.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
 				<maml:name>Who</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The Team(s) or Agent(s) the job was scheduled on.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="3">
 				<maml:name>ModuleGUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The GUID of the Module, Project or Runbook that was scheduled.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="4">
 				<maml:name>RunBookJobGUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The GUID of a runbook job.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Status</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Only return MasterJobs that are in a certain state.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>StartDate</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Returns a single MasterJob with a certain startdate/time. Input can be either a string or a DateTime object.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">PSObject</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>InvokedByRunbook</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>By default only main MasterJobs are returned. These are the jobs as shown in the console. With this parameter you can query jobs that were invoked by a runbook. In the console 
+these can be found by opening a runbook job and clicking the &#39;Jobs&#39; tab.</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Last</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>By default only the last 1000 jobs will be returned. If more (or less) are required use this parameter to specify the correct amount.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Full</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Retreive full information (Task information etc.).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Description</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Description of the MasterJob.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1785,7 +1959,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>MasterJobGUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the MasterJob.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -1797,7 +1971,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
 			<maml:name>Who</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>The Team(s) or Agent(s) the job was scheduled on.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1809,7 +1983,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="3">
 			<maml:name>ModuleGUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>The GUID of the Module, Project or Runbook that was scheduled.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -1821,7 +1995,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="4">
 			<maml:name>RunBookJobGUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>The GUID of a runbook job.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -1833,7 +2007,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Status</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Only return MasterJobs that are in a certain state.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -1845,7 +2019,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>StartDate</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Returns a single MasterJob with a certain startdate/time. Input can be either a string or a DateTime object.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">PSObject</command:parameterValue>
 			<dev:type>
@@ -1857,7 +2031,8 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>InvokedByRunbook</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>By default only main MasterJobs are returned. These are the jobs as shown in the console. With this parameter you can query jobs that were invoked by a runbook. In the console 
+these can be found by opening a runbook job and clicking the &#39;Jobs&#39; tab.</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -1869,19 +2044,19 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Last</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>By default only the last 1000 jobs will be returned. If more (or less) are required use this parameter to specify the correct amount.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
 			<dev:type>
 				<maml:name>Int32</maml:name>
 				<maml:uri/>
 			</dev:type>
-			<dev:defaultValue></dev:defaultValue>
+			<dev:defaultValue>1000</dev:defaultValue>
 		</command:parameter>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Full</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Retreive full information (Task information etc.).</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -1920,15 +2095,128 @@ Creation Date : 25-6-2015</maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get masterjob using a wildcard  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMMasterJob -Description Create*</dev:code>
+			<dev:remarks>
+				<maml:para>Displays information on RES Automation Manager MasterJobs whose descriptions start with &#39;Create&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get masterjobs by team  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>Get-RESAMMasterJob -Who &apos;Win7-Clients&apos;
+</dev:code>
+			<dev:remarks>
+				<maml:para>Displays information on RES Automation Manager MasterJobs where the targets contained the &#39;Win7-Clients&#39; team.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get full info on masterjobs that are currently scheduled  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMMasterJob -Status Scheduled -Full</dev:code>
+			<dev:remarks>
+				<maml:para>Display full information on all MasterJobs with status &#39;Scheduled&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get last 20 masterjobs invoked by runbook using description  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMMasterJob -Description &apos;A worthy Runbook&apos; -InvokedByRunbook -Last 20</dev:code>
+			<dev:remarks>
+				<maml:para>Display basic information on the last 20 Masterjobs that were invoked by a RunBook with a description of &#39;A worthy Runbook&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get masterjob by startdate  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; $Date = Get-Date &apos;19-5-2016 14:06:42&apos;
+C:\PS&gt; Get-RESAMMasterJob -StartDate $Date -Full
+</dev:code>
+			<dev:remarks>
+				<maml:para>Display full information on the MasterJobs with startdate &#39;19-5-2016 14:06:42&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
 			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
 			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
+		<maml:navigationLink>
+			<maml:linkText>Get-RESAMJob</maml:linkText>
+			<maml:uri></maml:uri>
+		</maml:navigationLink>
+		<maml:navigationLink>
+			<maml:linkText>New-RESAMMasterJob</maml:linkText>
+			<maml:uri></maml:uri>
 		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
@@ -2094,6 +2382,14 @@ Creation Date : 25-6-2015</maml:para>
 			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
 			<maml:uri>http://itmicah.wordpress.com</maml:uri>
 		</maml:navigationLink>
+		<maml:navigationLink>
+			<maml:linkText>Get-RESAMJob</maml:linkText>
+			<maml:uri></maml:uri>
+		</maml:navigationLink>
+		<maml:navigationLink>
+			<maml:linkText>Get-RESAMMasterjob</maml:linkText>
+			<maml:uri></maml:uri>
+		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
 <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
@@ -2101,7 +2397,7 @@ Creation Date : 25-6-2015</maml:para>
 	<command:details>
 		<command:name>Get-RESAMProject</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager Project objects.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -2111,39 +2407,39 @@ Creation Date : 25-6-2015</maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager Project objects from the RES Automation Manager Database.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMProject</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Name</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the Project</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>GUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the Project.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Full</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Retreive full information (Parameter information etc.).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Name</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of the Project</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -2155,7 +2451,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>GUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the Project.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -2167,7 +2463,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Full</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Retreive full information (Parameter information etc.).</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -2206,10 +2502,74 @@ Creation Date : 25-6-2015</maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------    --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>Get-RESAMProject -Name *User*</dev:code>
+			<dev:remarks>
+				<maml:para>Displays default information on RES Automation Manager Projects
+whose names contain the word &#39;User&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get project using wildcards  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMProject -Name *User*
+</dev:code>
+			<dev:remarks>
+				<maml:para>Displays default information on RES Automation Manager Projects whose names contain the word &#39;User&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get full project information  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMProject -Name &apos;Install WSUS patches&apos; -Full</dev:code>
+			<dev:remarks>
+				<maml:para>Displays full information on RES Automation Manager Project &#39;Install WSUS patches&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
@@ -2223,7 +2583,7 @@ Creation Date : 25-6-2015</maml:para>
 	<command:details>
 		<command:name>Get-RESAMQueryResult</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager query results.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -2233,46 +2593,46 @@ Creation Date : 25-6-2015</maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager query results from the RES Automation Manager Database. A query is a module task of the &#39;Query&#39; type. </maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMQueryResult</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Agent</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>An agent a query has been scheduled to.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>GUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The GUID of the query itself.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
 				<maml:name>MasterJobGUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the MasterJob you wish to view the query results of.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Last</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>By default only the last 1000 jobs will be returned. If more are required use this parameter to specify the correct amount.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Agent</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>An agent a query has been scheduled to.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -2284,7 +2644,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>GUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>The GUID of the query itself.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -2296,7 +2656,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="2">
 			<maml:name>MasterJobGUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the MasterJob you wish to view the query results of.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -2308,7 +2668,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Last</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>By default only the last 1000 jobs will be returned. If more are required use this parameter to specify the correct amount.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Int32</command:parameterValue>
 			<dev:type>
@@ -2347,15 +2707,65 @@ Creation Date : 25-6-2015</maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get query results by masterjob  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMMasterJob -Description &apos;Query Services&apos; | Get-RESAMQueryResult</dev:code>
+			<dev:remarks>
+				<maml:para>Displays the result of the MasterJobs whose description is &#39;Query Services&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get last query result by agent  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMQueryResult -Agent PC1234 -Last 50</dev:code>
+			<dev:remarks>
+				<maml:para>Displays the last 50 query results on agent PC1234.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
 			<maml:linkText>ITMicaH&apos;s Blog</maml:linkText>
 			<maml:uri>http://itmicah.wordpress.com</maml:uri>
+		</maml:navigationLink>
+		<maml:navigationLink>
+			<maml:linkText>Get-RESAMMasterJob</maml:linkText>
+			<maml:uri></maml:uri>
+		</maml:navigationLink>
+		<maml:navigationLink>
+			<maml:linkText>Get-RESAMAgent</maml:linkText>
+			<maml:uri></maml:uri>
 		</maml:navigationLink>
 	</maml:relatedLinks>
 </command:command>
@@ -2364,7 +2774,7 @@ Creation Date : 25-6-2015</maml:para>
 	<command:details>
 		<command:name>Get-RESAMResource</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager Resource objects.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -2374,39 +2784,39 @@ Creation Date : 25-6-2015</maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager Resource objects from the RES Automation Manager Database. Resources cannot be downloaded or unpacked using this command.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMResource</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Name</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the Resource.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>GUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the Resource.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Full</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Retreive full information (Type information etc.).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Name</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of the Resource.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -2418,7 +2828,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>GUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the Resource.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -2430,7 +2840,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Full</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Retreive full information (Type information etc.).</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -2469,10 +2879,52 @@ Creation Date : 25-6-2015</maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get resource using a wildcard  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMResource -Name *.msi</dev:code>
+			<dev:remarks>
+				<maml:para>Displays default information on RES Automation Manager Resources that are MSI&#39;s.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get full information on a resource  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMResource -Name &apos;RESWM2014.exe&apos; -Full</dev:code>
+			<dev:remarks>
+				<maml:para>Displays full information on RES Automation Manager Resource &#39;RESWM2014.exe&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
@@ -2486,7 +2938,7 @@ Creation Date : 25-6-2015</maml:para>
 	<command:details>
 		<command:name>Get-RESAMRunBook</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Get RES Automation Manager RunBook objects.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -2496,39 +2948,39 @@ Creation Date : 25-6-2015</maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Get RES Automation Manager RunBook objects from the RES Automation Manager Database.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
 			<maml:name>Get-RESAMRunBook</maml:name>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 				<maml:name>Name</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the RunBook.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 				<maml:name>GUID</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>GUID of the RunBook.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Full</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Retreive full information (Parameter information etc.).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 		</command:syntaxItem>
 	</command:syntax>
 	<command:parameters>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="0">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="true (ByPropertyName)" position="0">
 			<maml:name>Name</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of the RunBook.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -2540,7 +2992,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByPropertyName)" position="1">
 			<maml:name>GUID</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>GUID of the RunBook.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Guid</command:parameterValue>
 			<dev:type>
@@ -2552,7 +3004,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Full</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Retreive full information (Parameter information etc.).</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -2591,10 +3043,52 @@ Creation Date : 25-6-2015</maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Get runbook using a wildcard  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMRunBook -Name Execute*</dev:code>
+			<dev:remarks>
+				<maml:para>Displays default information on RES Automation Manager RunBooks whose names start with &#39;Execute&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get full information on runbook  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMRunBook -Name &apos;Deploy standard software&apos; -Full</dev:code>
+			<dev:remarks>
+				<maml:para>Displays full information on RES Automation Manager RunBook &#39;Deploy standard software&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
@@ -2805,7 +3299,7 @@ Creation Date : 25-6-2015</maml:para>
 	<command:details>
 		<command:name>New-RESAMJob</command:name>
 		<maml:description>
-			<maml:para />
+			<maml:para>Schedules a new job for a RES Automation Manager module, project or runbook.</maml:para>
 		</maml:description>
 		<maml:copyright>
 			<maml:para />
@@ -2815,7 +3309,7 @@ Creation Date : 25-6-2015</maml:para>
 		<dev:version />
 	</command:details>
 	<maml:description>
-		<maml:para />
+		<maml:para>Schedules a new job for a RES Automation Manager module, project or runbook. This command makes use of the REST API and will require a dispatcher with the WebAPI enabled. This also requires a RES AM account that has sufficient rights to read modules, projects and runbooks and can schedule jobs.</maml:para>
 	</maml:description>
 	<command:syntax>
 		<command:syntaxItem>
@@ -2823,70 +3317,70 @@ Creation Date : 25-6-2015</maml:para>
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Dispatcher</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the dispatcher with the WebAPI enabled.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Credential</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The RES AM user account name or it&#39;s credentials.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Description</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>A description for the job. If not entered the name of the scheduled object will be used.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByValue)" position="named">
 				<maml:name>Who</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The agents or teams the job should run on. Use either a comma separated list of names or an array of agent or team objects.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Module</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of a module or module object to schedule.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Start</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Date/Time the job should start. When omitted the job will be scheduled immediately.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">DateTime</command:parameterValue>
 			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="false" position="named">
 				<maml:name>LocalTime</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Use local time (Default).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>UseWOL</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Use Wake-on-LAN when the job starts.</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>UseDefaults</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Use the default values for all required parameters. Cannot be used in combination with the Parameters parameter.</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Parameters</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>A hashtable of required parameters for the job. When omitted the user will be prompted for required parameter values. You can find the required parameters by using the RequiredParameters property on the module, project or runbook you&#39;re scheduling. Cannot be used in combination with the UseDefaults parameter.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
 			</command:parameter>
@@ -2896,70 +3390,70 @@ Creation Date : 25-6-2015</maml:para>
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Dispatcher</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the dispatcher with the WebAPI enabled.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Credential</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The RES AM user account name or it&#39;s credentials.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Description</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>A description for the job. If not entered the name of the scheduled object will be used.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByValue)" position="named">
 				<maml:name>Who</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The agents or teams the job should run on. Use either a comma separated list of names or an array of agent or team objects.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Project</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of a project or project object to schedule.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Start</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Date/Time the job should start. When omitted the job will be scheduled immediately.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">DateTime</command:parameterValue>
 			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="false" position="named">
 				<maml:name>LocalTime</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Use local time (Default).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>UseWOL</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Use Wake-on-LAN when the job starts.</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>UseDefaults</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Use the default values for all required parameters. Cannot be used in combination with the Parameters parameter.</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Parameters</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>A hashtable of required parameters for the job. When omitted the user will be prompted for required parameter values. You can find the required parameters by using the RequiredParameters property on the module, project or runbook you&#39;re scheduling. Cannot be used in combination with the UseDefaults parameter.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
 			</command:parameter>
@@ -2969,70 +3463,70 @@ Creation Date : 25-6-2015</maml:para>
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Dispatcher</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of the dispatcher with the WebAPI enabled.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Credential</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The RES AM user account name or it&#39;s credentials.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Description</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>A description for the job. If not entered the name of the scheduled object will be used.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByValue)" position="named">
 				<maml:name>Who</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>The agents or teams the job should run on. Use either a comma separated list of names or an array of agent or team objects.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>RunBook</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Name of a runbook or runbook object to schedule.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Start</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Date/Time the job should start. When omitted the job will be scheduled immediately.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">DateTime</command:parameterValue>
 			</command:parameter>
-			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+			<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="false" position="named">
 				<maml:name>LocalTime</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Use local time (Default).</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>UseWOL</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Use Wake-on-LAN when the job starts.</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>UseDefaults</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>Use the default values for all required parameters. Cannot be used in combination with the Parameters parameter.</maml:para>
 				</maml:description>
 				<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			</command:parameter>
 			<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 				<maml:name>Parameters</maml:name>
 				<maml:description>
-					<maml:para />
+					<maml:para>A hashtable of required parameters for the job. When omitted the user will be prompted for required parameter values. You can find the required parameters by using the RequiredParameters property on the module, project or runbook you&#39;re scheduling. Cannot be used in combination with the UseDefaults parameter.</maml:para>
 				</maml:description>
 				<command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
 			</command:parameter>
@@ -3042,7 +3536,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Dispatcher</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of the dispatcher with the WebAPI enabled.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -3054,7 +3548,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Credential</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>The RES AM user account name or it&#39;s credentials.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			<dev:type>
@@ -3066,7 +3560,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Description</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>A description for the job. If not entered the name of the scheduled object will be used.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">String</command:parameterValue>
 			<dev:type>
@@ -3078,7 +3572,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="true (ByValue)" position="named">
 			<maml:name>Who</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>The agents or teams the job should run on. Use either a comma separated list of names or an array of agent or team objects.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			<dev:type>
@@ -3090,7 +3584,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Module</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of a module or module object to schedule.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			<dev:type>
@@ -3102,7 +3596,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Start</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Date/Time the job should start. When omitted the job will be scheduled immediately.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">DateTime</command:parameterValue>
 			<dev:type>
@@ -3111,10 +3605,10 @@ Creation Date : 25-6-2015</maml:para>
 			</dev:type>
 			<dev:defaultValue></dev:defaultValue>
 		</command:parameter>
-		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+		<command:parameter required="false" variableLength="false" globbing="true" pipelineInput="false" position="named">
 			<maml:name>LocalTime</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Use local time (Default).</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -3126,7 +3620,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>UseWOL</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Use Wake-on-LAN when the job starts.</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -3138,7 +3632,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>UseDefaults</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Use the default values for all required parameters. Cannot be used in combination with the Parameters parameter.</maml:para>
 			</maml:description>
 			<command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
 			<dev:type>
@@ -3150,7 +3644,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Parameters</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>A hashtable of required parameters for the job. When omitted the user will be prompted for required parameter values. You can find the required parameters by using the RequiredParameters property on the module, project or runbook you&#39;re scheduling. Cannot be used in combination with the UseDefaults parameter.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Hashtable</command:parameterValue>
 			<dev:type>
@@ -3162,7 +3656,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>Project</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of a project or project object to schedule.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			<dev:type>
@@ -3174,7 +3668,7 @@ Creation Date : 25-6-2015</maml:para>
 		<command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
 			<maml:name>RunBook</maml:name>
 			<maml:description>
-				<maml:para />
+				<maml:para>Name of a runbook or runbook object to schedule.</maml:para>
 			</maml:description>
 			<command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
 			<dev:type>
@@ -3213,10 +3707,73 @@ Creation Date : 25-6-2015</maml:para>
 	<maml:alertSet>
 		<maml:title></maml:title>
 		<maml:alert>
-			<maml:para />
+			<maml:para>Author        : Michaja van der Zouwen
+Version       : 1.0
+Creation Date : 25-6-2015</maml:para>
 		</maml:alert>
 	</maml:alertSet>
 	<command:examples>
+		<command:example>
+			<maml:title>--------------------------  Schedule module on two agents  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; New-RESAMJob -Dispatcher SRV-DISP-001 -Credential APIUser -Description &apos;New Test Job&apos; -Who PC1234,PC5678 -Module &apos;Test Module&apos;</dev:code>
+			<dev:remarks>
+				<maml:para>Schedules the module &#39;Test Module&#39; to run immediately on agent &#39;PC1234&#39; and &#39;PC5678&#39; using dispatcher &#39;SRV-DISP-001&#39; as user &#39;APIUser&#39;. There will be a prompt for the password.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Schedule project in one hour using parameters  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMAgent | New-RESAMJob -Dispatcher SRV-DISP-001 -Credential $Cred -Description &apos;New Test Job&apos; -Project &apos;Test Project&apos; -Start (Get-Date).AddHours(1) -Parameters @{Param1=&apos;TEST&apos;}</dev:code>
+			<dev:remarks>
+				<maml:para>Schedules the project &#39;Test Project&#39; to run in an hour on all agents using dispatcher &#39;SRV-DISP-001&#39; with a credential object saved in a variable. Required parameter &#39;Param1&#39; is set with value &#39;TEST&#39;.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Schedule runbook at a specific time using default parameter values  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMAgent NB* | New-RESAMJob -Dispatcher SRV-DISP-001 -Credential $Cred -RunBook $Runbook -Start 11:00PM -UseDefaults
+</dev:code>
+			<dev:remarks>
+				<maml:para>Schedules the runbook object in variable $runbook to run at 11:00PM today using dispatcher &#39;SRV-DISP-001&#39; with a credential object saved in a variable. The description will be set to the name of the runbook and all required parameters will be set with default values.</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
