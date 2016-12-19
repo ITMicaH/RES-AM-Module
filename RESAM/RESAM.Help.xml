@@ -3282,6 +3282,26 @@ Creation Date : 25-6-2015</maml:para>
 				</command:commandLine>
 			</command:commandLines>
 		</command:example>
+		<command:example>
+			<maml:title>--------------------------  Get members of a team  --------------------------</maml:title>
+			<maml:introduction>
+				<maml:paragraph>PS C:\&gt;</maml:paragraph>
+			</maml:introduction>
+			<dev:code>C:\PS&gt; Get-RESAMTeam -Name Team1 | Get-RESAMAgents</dev:code>
+			<dev:remarks>
+				<maml:para>Get RES Automation Manager team &#39;Team1&#39; and display it&#39;s team members (agents)</maml:para>
+				<maml:para />
+				<maml:para />
+				<maml:para></maml:para>
+			</dev:remarks>
+			<command:commandLines>
+				<command:commandLine>
+					<command:commandText>
+						<maml:para />
+					</command:commandText>
+				</command:commandLine>
+			</command:commandLines>
+		</command:example>
 	</command:examples>
 	<maml:relatedLinks>
 		<maml:navigationLink>
