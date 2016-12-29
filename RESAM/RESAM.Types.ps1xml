@@ -288,29 +288,6 @@
 			$this | Get-RESAMMasterJob @Properties
 		</Script>
 	  </ScriptMethod>
-	  <ScriptProperty>
-		<Name>ModuleTasks</Name>
-		<GetScriptBlock>
-			If ($this.Tasks.tasks.task)
-			{
-				$Tasks = $This.Tasks.tasks.task | ?{!$_.Hidden}
-				foreach ($Task in $Tasks)
-				{
-					$ModuleTask = $Task.properties | ConvertTo-RESAMObject -Type Task
-					If ($Task.Settings)
-					{
-						$Settings = $Task.settings | ConvertTo-RESAMObject -Type TaskSetting
-						$ModuleTask | Add-Member -MemberType NoteProperty -Name Settings -Value $Settings
-					}
-					$ModuleTask
-				}
-			}
-			else
-			{
-				"Use '-Full' parameter for details"
-			}
-		</GetScriptBlock>
-	  </ScriptProperty>
 	  <ScriptMethod>
 		<Name>ToString</Name>
 		<Script>$this.Name</Script>
@@ -483,6 +460,7 @@
               <Name>GUID</Name>
 			  <Name>Enabled</Name>
 			  <Name>RequiredParameters</Name>
+			  <Name>RunBookJobs</Name>
               <Name>FolderName</Name>
             </ReferencedProperties>
           </PropertySet>
@@ -583,6 +561,100 @@
 					}
 					$Object.PSObject.TypeNames.Insert(0,"RES.AutomationManager.Parameter")
 					$Object
+				}
+			}
+			else
+			{
+				"Use '-Full' parameter for details"
+			}
+		</GetScriptBlock>
+	  </ScriptProperty>
+	  <ScriptProperty>
+		<Name>RunBookJobs</Name>
+		<GetScriptBlock>
+			If ($this.Properties.properties)
+			{
+				$Jobs = $this.Properties.properties.jobs.job
+				foreach ($Job in $Jobs)
+				{
+					$Properties = $Job.properties
+					$Type = $Properties.what.type
+					$GUIDS = $Properties.what.InnerText.Split(';').Trim('{|}')
+					$What = foreach ($GUID in $GUIDS)
+					{
+						$Command = "Get-RESAM$Type -GUID $GUID"
+						Invoke-Expression $Command
+					}
+					If ($Properties.who.type -eq 'Agent')
+					{
+						$Who = Get-RESAMAgent -GUID $Properties.who.InnerText
+					}
+					elseif ($Properties.use_runbookparam -eq 'yes')
+					{
+						switch ($Properties.runbookparam_behavior)
+						{
+							0 {$Select = 'Agent by ComputerName'}
+							1 {$Select = 'Agent by active console user'}
+							2 {$Select = 'Agent by last console user'}
+							3 {$Select = 'Most recent Agent by last console user'}
+						}
+						$Who = [pscustomobject]@{
+							Parameter = $Properties.runbookparam_who
+							SelectionMethod = $Select
+						}
+						$Params = @{
+							MemberType = 'ScriptMethod'
+							Name = 'ToString'
+							Value = {$this.Parameter}
+						}
+						$Who | Add-Member @Params -Force
+					}
+					else
+					{
+						$Who = $Properties.who.InnerText
+					}
+					$Object = [pscustomobject]@{
+						Description = $Properties.name
+						Enabled = $Properties.enabled
+						What = $What
+						Who = $Who
+						OnError = $Properties.onerror
+						'TimeOut(m)' = $Properties.timeout
+						JobGUID = $Job.guid
+					}
+					If ($Who.count -gt 1)
+					{
+						$Params = @{
+							MemberType = 'NoteProperty'
+							Name = 'SelectOneAgent'
+							Value = $Properties.selectoneagent
+						}
+						$Object | Add-Member @Params
+					}
+					If ($Properties.offlineagentsnextboot -eq 'yes')
+					{
+						switch ($Properties.resume)
+						{
+							yes {$Value = 'NextBoot;Resume'}
+							no  {$Value = 'NextBoot'}
+						}
+						$Params = @{
+							MemberType = 'NoteProperty'
+							Name = 'OfflineAgents'
+							Value = $Value
+						}
+						$Object | Add-Member @Params
+					}
+					else
+					{
+						$Params = @{
+							MemberType = 'NoteProperty'
+							Name = 'WakeOnLAN'
+							Value = $Properties.wol
+						}
+						$Object | Add-Member @Params
+					}
+					$Object | ConvertTo-RESAMObject -Type RunbookJob
 				}
 			}
 			else
@@ -888,6 +960,15 @@
 	  <ScriptMethod>
 		<Name>ToString</Name>
 		<Script>$this.Name</Script>
+	  </ScriptMethod>
+    </Members>
+  </Type>
+  <Type>
+    <Name>RES.AutomationManager.RunbookJob</Name>
+    <Members>
+	  <ScriptMethod>
+		<Name>ToString</Name>
+		<Script>$this.Description</Script>
 	  </ScriptMethod>
     </Members>
   </Type>
