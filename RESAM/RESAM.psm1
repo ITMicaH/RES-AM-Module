@@ -181,7 +181,7 @@ function ConvertTo-RESAMObject
             }
             catch
             {
-                'test'
+                Write-Debug "Error adding property '$NewProp'"
             }
         }
         $Object = New-Object -TypeName psobject -Property $ht
