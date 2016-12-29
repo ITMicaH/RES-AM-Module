@@ -175,7 +175,14 @@ function ConvertTo-RESAMObject
                 catch{}
             }
             $NewProp = $NewProp.substring(0,1).toupper() + $NewProp.substring(1)
-            $ht.Add($NewProp,$Value)
+            try
+            {
+                $ht.Add($NewProp,$Value)
+            }
+            catch
+            {
+                'test'
+            }
         }
         $Object = New-Object -TypeName psobject -Property $ht
         If ($Type)
@@ -1281,30 +1288,30 @@ function Get-RESAMModule
             $Query = "select * from dbo.tblModules"
         }
 
-        $Output = Invoke-SQLQuery $Query -Type Module -Full:$Full | Add-RESAMFolderName
-        If ($Full)
-        {
-            If ($Output.Tasks.tasks.task)
+        Invoke-SQLQuery $Query -Type Module -Full:$Full | Add-RESAMFolderName | %{
+            If ($Full)
+            {
+                If ($_.Tasks.tasks.task)
+		        {
+			        $Tasks = $_.Tasks.tasks.task | ?{!$_.Hidden}
+			        $ModuleTasks = foreach ($Task in $Tasks)
+			        {
+				        $ModuleTask = $Task.properties | ConvertTo-RESAMObject -Type Task
+				        If ($Task.Settings)
+				        {
+					        $Settings = $Task.settings | ConvertTo-RESAMObject -Type TaskSetting
+					        $ModuleTask | Add-Member -MemberType NoteProperty -Name Settings -Value $Settings
+				        }
+                        $ModuleTask
+			        }
+                    $_ | Add-Member -MemberType NoteProperty -Name ModuleTasks -Value $ModuleTasks -PassThru
+                }
+		    }
+		    else
 		    {
-			    $Tasks = $Output.Tasks.tasks.task | ?{!$_.Hidden}
-			    $ModuleTasks = foreach ($Task in $Tasks)
-			    {
-				    $ModuleTask = $Task.properties | ConvertTo-RESAMObject -Type Task
-				    If ($Task.Settings)
-				    {
-					    $Settings = $Task.settings | ConvertTo-RESAMObject -Type TaskSetting
-					    $ModuleTask | Add-Member -MemberType NoteProperty -Name Settings -Value $Settings
-				    }
-                    $ModuleTask
-			    }
-                $Output | Add-Member -MemberType NoteProperty -Name ModuleTasks -Value $ModuleTasks
-            }
-		}
-		else
-		{
-			$Output | Add-Member -MemberType NoteProperty -Name ModuleTasks -Value "Use '-Full' parameter for details"
-		}
-        $Output
+			    $_ | Add-Member -MemberType NoteProperty -Name ModuleTasks -Value "Use '-Full' parameter for details" -PassThru
+		    }
+        }
     }
 }
 
