@@ -1288,13 +1288,14 @@ function Get-RESAMModule
             $Query = "select * from dbo.tblModules"
         }
 
-        Invoke-SQLQuery $Query -Type Module -Full:$Full | Add-RESAMFolderName | %{
+        Invoke-SQLQuery $Query -Type Module -Full:$Full | Add-RESAMFolderName| %{
             If ($Full)
             {
                 If ($_.Tasks.tasks.task)
 		        {
 			        $Tasks = $_.Tasks.tasks.task | ?{!$_.Hidden}
-			        $ModuleTasks = foreach ($Task in $Tasks)
+			        $ModuleTasks = @()
+                    foreach ($Task in $Tasks)
 			        {
 				        $ModuleTask = $Task.properties | ConvertTo-RESAMObject -Type Task
 				        If ($Task.Settings)
@@ -1302,7 +1303,7 @@ function Get-RESAMModule
 					        $Settings = $Task.settings | ConvertTo-RESAMObject -Type TaskSetting
 					        $ModuleTask | Add-Member -MemberType NoteProperty -Name Settings -Value $Settings
 				        }
-                        $ModuleTask
+                        $ModuleTasks += $ModuleTask
 			        }
                     $_ | Add-Member -MemberType NoteProperty -Name ModuleTasks -Value $ModuleTasks -PassThru
                 }
