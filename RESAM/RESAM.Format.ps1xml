@@ -43,6 +43,9 @@
 			  </ScriptBlock>
             </ListItem>
 			<ListItem>
+              <PropertyName>LastConsoleUser</PropertyName>
+            </ListItem>
+			<ListItem>
 			  <PropertyName>PrimaryTeam</PropertyName>
             </ListItem>
 			<ListItem>
@@ -102,6 +105,32 @@
             </ListItem>
 			<ListItem>
               <PropertyName>WOL</PropertyName>
+            </ListItem>
+			<ListItem>
+              <PropertyName>Status</PropertyName>
+            </ListItem>
+          </ListItems>
+        </ListEntry>
+      </ListEntries>
+    </ListControl>
+  </View>
+  <View>
+    <Name>RES.AutomationManager.Job</Name>
+    <ViewSelectedBy>
+      <TypeName>RES.AutomationManager.Job</TypeName>
+    </ViewSelectedBy>
+	<ListControl>
+      <ListEntries>
+        <ListEntry>
+          <ListItems>
+            <ListItem>
+              <PropertyName>StartDateTime</PropertyName>
+            </ListItem>
+            <ListItem>
+              <PropertyName>JobInvokerInfo</PropertyName>
+            </ListItem>
+            <ListItem>
+              <PropertyName>CurrentActivity</PropertyName>
             </ListItem>
 			<ListItem>
               <PropertyName>Status</PropertyName>
