@@ -17,6 +17,7 @@
               <Name>State</Name>
               <Name>OSName</Name>
               <Name>OSServicePack</Name>
+			  <Name>LastConsoleUser</Name>
               <Name>PrimaryTeam</Name>
               <Name>Teams</Name>
             </ReferencedProperties>
