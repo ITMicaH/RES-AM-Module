@@ -357,6 +357,17 @@ function Optimize-RESAMAgent
         {
             $Agent | Add-Member -MemberType NoteProperty -Name HasDuplicates -Value $False
         }
+        Write-Verbose "Getting last known user."
+        $Query = "select * from dbo.tblSettings WHERE GUID = '$($Agent.WUIDAgent)' AND lngSetting = 24"
+        $AgentSettings = Invoke-SQLQuery $Query
+        If ($AgentSettings.Value)
+        {
+            $Agent | Add-Member -MemberType NoteProperty -Name LastConsoleUser -Value $AgentSettings.Value.Substring(1)
+        }
+        else
+        {
+            $Agent | Add-Member -MemberType NoteProperty -Name LastConsoleUser -Value $null
+        }
         $Agent
     }
 }
@@ -2186,7 +2197,7 @@ function New-RESAMJob
         } # end IF $inputparameters
         $ArrWho = @()
     }
-	process {
+    process {
         foreach ($AMWho in $Who)
         {
             Write-Verbose "Processing target $AMWho..."
@@ -2248,7 +2259,7 @@ function New-RESAMJob
                 Immediate = $Immediate.ToString().ToLower()
                 IsLocalTime = $LocalTime.ToString().ToLower()
                 UseWakeOnLAN = $UseWOL.ToString().ToLower()
-			}
+		}
             What = @(
                         [pscustomobject]@{
                             ID = "{$($Task.GUID.ToString().ToUpper())}"
