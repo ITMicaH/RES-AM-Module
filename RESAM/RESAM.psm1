@@ -563,24 +563,14 @@ function Invoke-RESAMRestMethod
         $Method,
 
         [Parameter(Mandatory=$True)]
+        [pscredential]
+        [System.Management.Automation.CredentialAttribute()]
         $Credential,
 	    
         [System.Object]
         $Body
 	)
 
-	begin
-    {
-        If ($Credential) {
-            Write-Verbose "Processing credentials."
-            $Message = "Please enter RES Automation Manager credentials to connect to the Dispatcher."
-            switch ($Credential.GetType().Name)
-            {
-                'PSCredential' {}
-                'String' {$Credential = Get-Credential $Credential -Message $Message}
-            }
-        }
-    }
 	process {
 		$Splat = @{
 			Uri = $Uri
@@ -607,6 +597,8 @@ function Get-RESAMInputParameter
         $Dispatcher,
 
         [Parameter(Mandatory=$True)]
+        [pscredential]
+        [System.Management.Automation.CredentialAttribute()]
 	    $Credential,
 
         [Parameter(Mandatory=$True,
@@ -617,18 +609,7 @@ function Get-RESAMInputParameter
         [Switch]
         $Raw = $false
 	)
-	begin
-    {
-        If ($Credential) {
-            Write-Verbose "Processing credentials."
-            $Message = "Please enter RES Automation Manager credentials to connect to the Dispatcher."
-            switch ($Credential.GetType().Name)
-            {
-                'PSCredential' {}
-                'String' {$Credential = Get-Credential $Credential -Message $Message}
-            }
-        }
-    }
+
 	process {
 		$endPoint = "Dispatcher/SchedulingService/what"
         $Type = $What.PSObject.TypeNames | ?{$_ -like 'RES*'}
@@ -668,21 +649,13 @@ function Connect-RESAMDatabase
 
         [Parameter(Mandatory=$false,
                    Position=2)]
+        [pscredential]
+        [System.Management.Automation.CredentialAttribute()]
         $Credential,
 
         [switch]
         $PassThru
     )
-
-    If ($Credential) {
-        Write-Verbose "Processing credentials."
-        $Message = "Please enter credentials to connect to database '$DatabaseName'."
-        switch ($Credential.GetType().Name)
-        {
-            'PSCredential' {}
-            'String' {$Credential = Get-Credential $Credential -Message $Message}
-        }
-    }
 
     Write-Verbose "Connecting to database $DatabaseName on $DataSource..."
     $connectionString = "Server=$dataSource;Database=$DatabaseName"
@@ -1980,6 +1953,8 @@ function New-RESAMJob
         $Dispatcher,
 
         [Parameter(Mandatory=$True)]
+        [pscredential]
+        [System.Management.Automation.CredentialAttribute()]
 		$Credential,
 
 		[String]
@@ -2018,15 +1993,6 @@ function New-RESAMJob
         If ($UseDefaults -and $Parameters)
         {
             throw "Illegal operation! You cannot use '-UseDefaults' and '-Parameters' together in a single command."
-        }
-        If ($Credential) {
-            Write-Verbose "Processing credentials."
-            $Message = "Please enter RES Automation Manager credentials to connect to the Dispatcher."
-            switch ($Credential.GetType().Name)
-            {
-                'PSCredential' {}
-                'String' {$Credential = Get-Credential $Credential -Message $Message}
-            }
         }
         If ($Start)
         {
@@ -2197,7 +2163,7 @@ function New-RESAMJob
         } # end IF $inputparameters
         $ArrWho = @()
     }
-    process {
+	process {
         foreach ($AMWho in $Who)
         {
             Write-Verbose "Processing target $AMWho..."
@@ -2259,7 +2225,7 @@ function New-RESAMJob
                 Immediate = $Immediate.ToString().ToLower()
                 IsLocalTime = $LocalTime.ToString().ToLower()
                 UseWakeOnLAN = $UseWOL.ToString().ToLower()
-		}
+			}
             What = @(
                         [pscustomobject]@{
                             ID = "{$($Task.GUID.ToString().ToUpper())}"
@@ -2283,3 +2249,4 @@ function New-RESAMJob
         }
 	}
 }
+
