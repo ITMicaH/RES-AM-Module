@@ -563,6 +563,7 @@ function Invoke-RESAMRestMethod
         $Method,
 
         [Parameter(Mandatory=$True)]
+        [ValidateNotNull()]
         [pscredential]
         [System.Management.Automation.CredentialAttribute()]
         $Credential,
@@ -597,6 +598,7 @@ function Get-RESAMInputParameter
         $Dispatcher,
 
         [Parameter(Mandatory=$True)]
+        [ValidateNotNull()]
         [pscredential]
         [System.Management.Automation.CredentialAttribute()]
 	    $Credential,
@@ -649,6 +651,7 @@ function Connect-RESAMDatabase
 
         [Parameter(Mandatory=$false,
                    Position=2)]
+        [ValidateNotNull()]
         [pscredential]
         [System.Management.Automation.CredentialAttribute()]
         $Credential,
@@ -1953,6 +1956,7 @@ function New-RESAMJob
         $Dispatcher,
 
         [Parameter(Mandatory=$True)]
+        [ValidateNotNull()]
         [pscredential]
         [System.Management.Automation.CredentialAttribute()]
 		$Credential,
@@ -2249,4 +2253,3 @@ function New-RESAMJob
         }
 	}
 }
-
