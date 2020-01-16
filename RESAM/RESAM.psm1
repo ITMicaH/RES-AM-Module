@@ -2249,14 +2249,16 @@ class RESAMJob
         $this.Order = $Job.lngOrder
         $this.Tasks = $Job.imgTasks
         [xml]$Xml = [System.Text.Encoding]::Unicode.GetString($this.Tasks)
-        $this.Name = $xml.selectsinglenode('*/task').jobname
-        If ($xml.selectsinglenode('*/task').projectinfo)
+        $FirstTask = $xml.selectsinglenode('*/task')
+        If ($FirstTask.projectinfo)
         {
             $this.Type = 'Project'
+            $this.Name = $FirstTask.projectinfo.name
         }
         else
         {
             $this.Type = 'Module'
+            $this.Name = $FirstTask.moduleinfo.name
         }
         $this.Obsolete = $Job.ysnObsolete
         $this.MasterJobGUID = $Job.MasterJobGUID
