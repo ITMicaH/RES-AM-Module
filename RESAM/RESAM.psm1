@@ -67,11 +67,16 @@ function Invoke-SQLQuery
         }
         If ($Type)
         {
-            $CustomTable | ConvertTo-RESAMObject -Type $Type -Full:$Full
+            switch ($Type)
+            {
+                Job       {$CustomTable}
+                MasterJob {$CustomTable}
+                Default   {ConvertTo-RESAMObject -InputObject $CustomTable -Full:$Full -Type $Type}
+            }
         }
         else
         {
-            $CustomTable | ConvertTo-RESAMObject -Full:$Full
+            ConvertTo-RESAMObject -InputObject $CustomTable -Full:$Full
         }
 
         $result.close()
@@ -109,87 +114,90 @@ function ConvertTo-RESAMObject
     }
     Process
     {
-        switch ($InputObject.GetType().Name)
+        foreach ($Object in $InputObject)
         {
-            PSCustomObject {$MemberType = 'NoteProperty'}
-            Default        {$MemberType = 'Property'}
-        }
-        $Properties = $InputObject | Get-Member -MemberType $MemberType |
-         select -ExpandProperty Name
-        $ht = @{}
-        foreach ($Property in $Properties)
-        {
-            $NewProp = $Property -replace '^(str|lng|ysn|dtm|img)','' -replace '^Obj',''
-            $Value = $InputObject.$Property
-            If ($Type -ne 'Parameter')
+            switch ($Object.GetType().Name)
             {
-                switch ($Value)
-                {
-                    yes {$Value = $true}
-                    no  {$Value = $False}
-                }
+                PSCustomObject {$MemberType = 'NoteProperty'}
+                Default        {$MemberType = 'Property'}
             }
-            If ($NewProp -eq 'Status')
+            $Properties = $Object | Get-Member -MemberType $MemberType |
+             select -ExpandProperty Name
+            $ht = @{}
+            foreach ($Property in $Properties)
             {
-                switch ($Value)
+                $NewProp = $Property -replace '^(str|lng|ysn|dtm|img)','' -replace '^Obj',''
+                $Value = $Object.$Property
+                If ($Type -ne 'Parameter')
                 {
-                    '0' {$Value = 'Offline'}
-                    '1' {$Value = 'Online'}
-                }
-            }
-            if ($InputObject.$Property)
-            {
-                if ($InputObject.$Property.GetType().Name -eq 'Byte[]')
-                {
-                    If ($Full)
+                    switch ($Value)
                     {
-                        $Value = ConvertFrom-ByteArray $Value
+                        yes {$Value = $true}
+                        no  {$Value = $False}
+                    }
+                }
+                If ($NewProp -eq 'Status')
+                {
+                    switch ($Value)
+                    {
+                        '0' {$Value = 'Offline'}
+                        '1' {$Value = 'Online'}
+                    }
+                }
+                if ($Object.$Property)
+                {
+                    if ($Object.$Property.GetType().Name -eq 'Byte[]')
+                    {
+                        If ($Full)
+                        {
+                            $Value = ConvertFrom-ByteArray $Value
+                        }
+                        else
+                        {
+                            $Value = "Use '-Full' parameter for details"
+                        }
+                    }
+                }
+                If ($Property -eq 'imgWho')
+                {
+                    $NewProp = 'WhoGUID'
+                }
+                If ($Object.$Property -is [datetime])
+                {
+                    If ($Value | Get-Member -Name ToLocalTime)
+                    {
+                        $Value = $Value.ToLocalTime()
                     }
                     else
                     {
-                        $Value = "Use '-Full' parameter for details"
+                        $Value = ConvertTo-LocalTime $Value
                     }
                 }
-            }
-            If ($Property -eq 'imgWho')
-            {
-                $NewProp = 'WhoGUID'
-            }
-            If ($InputObject.$Property -is [datetime])
-            {
-                If ($Value | Get-Member -Name ToLocalTime)
+                If ($Object.$Property -is [string])
                 {
-                    $Value = $Value.ToLocalTime()
+                    Try
+                    {
+                        $Value = $Value.substring(0,1).toupper() + $Value.substring(1)
+                    }
+                    catch{}
                 }
-                else
+                $NewProp = $NewProp.substring(0,1).toupper() + $NewProp.substring(1)
+                try
                 {
-                    $Value = ConvertTo-LocalTime $Value
+                    $ht.Add($NewProp,$Value)
                 }
-            }
-            If ($InputObject.$Property -is [string])
-            {
-                Try
+                catch
                 {
-                    $Value = $Value.substring(0,1).toupper() + $Value.substring(1)
+                    Write-Debug "Error adding property '$NewProp'"
                 }
-                catch{}
             }
-            $NewProp = $NewProp.substring(0,1).toupper() + $NewProp.substring(1)
-            try
+            $Output = New-Object -TypeName psobject -Property $ht
+            If ($Type)
             {
-                $ht.Add($NewProp,$Value)
+                $Output.PSObject.TypeNames.Insert(0,"RES.AutomationManager.$Type")
             }
-            catch
-            {
-                Write-Debug "Error adding property '$NewProp'"
-            }
+            $Output
         }
-        $Object = New-Object -TypeName psobject -Property $ht
-        If ($Type)
-        {
-            $Object.PSObject.TypeNames.Insert(0,"RES.AutomationManager.$Type")
-        }
-        $Object
     }
 }
 
@@ -1551,6 +1559,7 @@ function Get-RESAMDatabaseLevel
 function Get-RESAMMasterJob
 {
     [CmdletBinding()]
+    [OutputType([RESAMMasterJob])]
     param (
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 0)]
@@ -1581,19 +1590,7 @@ function Get-RESAMMasterJob
         [guid]
         $RunBookJobGUID,
         
-        [Parameter(ValueFromPipelineByPropertyName=$false)]
-        [ValidateSet('On Hold',
-                    'Scheduled',
-                    'Active',
-                    'Aborting',
-                    'Aborted',
-                    'Completed',
-                    'Failed',
-                    'Failed Halted',
-                    'Cancelled',
-                    'Completed with Errors',
-                    'Skipped')]
-        [string]
+        [JobStatus]
         $Status,
 
         [psobject]
@@ -1603,10 +1600,7 @@ function Get-RESAMMasterJob
         $InvokedByRunbook,
 
         [int]
-        $Last = 1000,
-
-        [switch]
-        $Full
+        $Last = 1000
     )
     begin
     {
@@ -1621,6 +1615,14 @@ function Get-RESAMMasterJob
         else
         {
             $LastNr = "TOP $Last"
+        }
+        If ((Get-RESAMDatabaseLevel) -ge 61)
+        {
+            $Tables = @('tblMasterJob','tblMasterJobHistory')
+        }
+        else
+        {
+            $Tables = @('tblMasterJob')
         }
     }
     process
@@ -1662,33 +1664,20 @@ function Get-RESAMMasterJob
             }
             $Filter += "strWho LIKE '$($Who.Replace('*','%'))'"
         }
-        If ($Status)
+        If ($PSBoundParameters['Status'] -or $PSBoundParameters['Status'] -eq 0)
         {
             Write-Verbose "Filtering jobs on status '$Status'..."
-            switch ($Status)
-            {
-                'On Hold'               {$StatusNr = -1}
-                'Scheduled'             {$StatusNr = 0}
-                'Active'                {$StatusNr = 1}
-                'Aborting'              {$StatusNr = 2}
-                'Aborted'               {$StatusNr = 3}
-                'Completed'             {$StatusNr = 4}
-                'Failed'                {$StatusNr = 5}
-                'Failed Halted'         {$StatusNr = 6}
-                'Cancelled'             {$StatusNr = 7}
-                'Completed with Errors' {$StatusNr = 8}
-                'Skipped'               {$StatusNr = 9}
-            }
+            $StatusNr = [int]$Status
             $Filter += "lngStatus = $StatusNr"
         }
-        else
-        {
-            Write-Verbose 'No status specified. Skipping active masterjobs...'
-            foreach ($StatusNr in -1..2)
-            {
-                $Filter += "lngStatus <> $StatusNr"
-            }
-        }
+        #else
+        #{
+        #    Write-Verbose 'No status specified. Skipping active masterjobs...'
+        #    foreach ($StatusNr in -1..2)
+        #    {
+        #        $Filter += "lngStatus <> $StatusNr"
+        #    }
+        #}
         If ($StartDate)
         {
             $uDate = (Get-Date $StartDate -ea 1).ToUniversalTime()
@@ -1696,19 +1685,18 @@ function Get-RESAMMasterJob
             $Date2 = Get-Date $uDate.AddSeconds(1) -Format 'yyyy-MM-dd HH:mm:ss'
             $Filter += "dtmStartDateTime BETWEEN '$Date1' AND '$Date2'"
         }
-        $Query = "select $LastNr * from dbo.tblMasterJob"
-        If ($Filter)
-        {
-            $Filter = $Filter -join ' AND '
-            $Query = "$Query WHERE $Filter"
-        }
+        $Tables.ForEach({
+            $Query = "select $LastNr * from dbo.$_"
+            If ($Filter)
+            {
+                $Filter = $Filter -join ' AND '
+                $Query = "$Query WHERE $Filter"
+            }
 
-        $Query = "$Query order by dtmStartDateTime DESC"
-        Invoke-SQLQuery $Query -Type MasterJob -Full:$Full | Optimize-RESAMJob
-        If ((Get-RESAMDatabaseLevel) -ge 61)
-        {
-            Invoke-SQLQuery $Query.Replace('tblMasterJob','tblMasterJobHistory') -Type MasterJob -Full:$Full | Optimize-RESAMJob
-        }
+            $Query = "$Query order by dtmStartDateTime DESC"
+            #Invoke-SQLQuery $Query -Type MasterJob -Full:$Full | Optimize-RESAMJob
+            [RESAMMasterJob[]](Invoke-SQLQuery $Query -Type MasterJob)
+        }).Where({$_})
     }
 }
 
@@ -1716,6 +1704,7 @@ function Get-RESAMMasterJob
 function Get-RESAMJob
 {
     [CmdletBinding()]
+    [OutputType([RESAMJob])]
     param (
         [Parameter(ValueFromPipelineByPropertyName=$true,
                    Position = 0)]
@@ -1735,18 +1724,7 @@ function Get-RESAMJob
         
         [Parameter(ValueFromPipelineByPropertyName=$false,
                    Position = 3)]
-        [ValidateSet('On Hold',
-                    'Scheduled',
-                    'Active',
-                    'Aborting',
-                    'Aborted',
-                    'Completed',
-                    'Failed',
-                    'Failed Halted',
-                    'Cancelled',
-                    'Completed with Errors',
-                    'Skipped')]
-        [string]
+        [JobStatus]
         $Status,
 
         [int]
@@ -1768,6 +1746,14 @@ function Get-RESAMJob
         else
         {
             $LastNr = "TOP $Last"
+        }
+        If ((Get-RESAMDatabaseLevel) -ge 61)
+        {
+            $Tables = @('tblJobsHistory','tblJobs')
+        }
+        else
+        {
+            $Tables = @('tblJobs')
         }
     }
     process
@@ -1793,47 +1779,23 @@ function Get-RESAMJob
             Write-Verbose "Running query based on MasterJobGUID $MasterJobGUID."
             $Filter += "MasterJobGUID = '$MasterJobGUID'"
         }
-        If ($Status)
+        If ($PSBoundParameters['Status'] -or $PSBoundParameters['Status'] -eq 0)
         {
             Write-Verbose "Filtering jobs on status '$Status'..."
-            switch ($Status)
-            {
-                'On Hold'               {$StatusNr = -1}
-                'Scheduled'             {$StatusNr = 0}
-                'Active'                {$StatusNr = 1}
-                'Aborting'              {$StatusNr = 2}
-                'Aborted'               {$StatusNr = 3}
-                'Completed'             {$StatusNr = 4}
-                'Failed'                {$StatusNr = 5}
-                'Failed Halted'         {$StatusNr = 6}
-                'Cancelled'             {$StatusNr = 7}
-                'Completed with Errors' {$StatusNr = 8}
-                'Skipped'               {$StatusNr = 9}
-            }
+            $StatusNr = [int]$Status
             $Filter += "lngStatus = $StatusNr"
         }
-        else
-        {
-            Write-Verbose 'No status specified. Skipping active jobs...'
-            foreach ($StatusNr in -1..2)
+        $Tables.ForEach({
+            $Query = "select $LastNr * from dbo.$_"
+            If ($Filter)
             {
-                $Filter += "lngStatus <> $StatusNr"
+                $Filter = $Filter -join ' AND '
+                $Query = "$Query WHERE $Filter"
             }
-        }
 
-        $Query = "select $LastNr * from dbo.tblJobs"
-        If ($Filter)
-        {
-            $Filter = $Filter -join ' AND '
-            $Query = "$Query WHERE $Filter"
-        }
-
-        $Query = "$Query order by dtmStartDateTime DESC"
-        Invoke-SQLQuery $Query -Type Job -Full:$Full | Optimize-RESAMJob
-        If ((Get-RESAMDatabaseLevel) -ge 61)
-        {
-            Invoke-SQLQuery $Query.Replace('tblJobs','tblJobsHistory') -Type Job -Full:$Full | Optimize-RESAMJob
-        }
+            $Query = "$Query order by dtmStartDateTime DESC"
+            [RESAMJob[]](Invoke-SQLQuery $Query -Type Job)
+        }).Where({$_})
     }
 }
 
@@ -2248,8 +2210,267 @@ function New-RESAMJob
 		$Job = Invoke-RESAMRestMethod @pREST -Body (ConvertTo-Json $blob -Depth 99)
         switch ($Job.Status.JobInvoker)
         {
-            'InvokeRunBook' {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -InvokedByRunbook | Get-RESAMMasterJob -Full -WA 0}
-            Default         {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -Full -WA 0}
+            'InvokeRunBook' {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -InvokedByRunbook | Get-RESAMMasterJob -WA 0}
+            Default         {Get-RESAMMasterJob -MasterJobGUID $Job.JobID -WA 0}
         }
 	}
 }
+
+#region Classes
+
+# RESAM Job class
+class RESAMJob
+{
+    #Properties
+    [string]   $Name
+    [DateTime] $StartDate
+    [string]   $Type
+    [string]   $Agent
+    [DateTime] $StopDate
+    [JobStatus]$Status
+    [string]   $CurrentActivity
+    [int]      $Order
+    [bool]     $Obsolete
+   
+    hidden [byte[]] $Tasks
+    hidden [guid]   $MasterJobGUID
+    hidden [guid]   $CurrentTaskGUID
+    hidden [guid]   $AgentGUID
+    hidden [guid]   $JobGUID
+
+    # Constructor
+    RESAMJob ([System.Data.DataRow]$Job)
+    {
+        $this.StartDate = $Job.dtmStartDateTime.ToLocalTime()
+        $this.Agent = $Job.strAgent
+        $this.StopDate = $Job.dtmStopDateTime.ToLocalTime()
+        $this.Status = $Job.lngStatus
+        $this.CurrentActivity = $Job.strCurrentActivity
+        $this.Order = $Job.lngOrder
+        $this.Tasks = $Job.imgTasks
+        [xml]$Xml = [System.Text.Encoding]::Unicode.GetString($this.Tasks)
+        $this.Name = $xml.selectsinglenode('*/task').jobname
+        If ($xml.selectsinglenode('*/task').projectinfo)
+        {
+            $this.Type = 'Project'
+        }
+        else
+        {
+            $this.Type = 'Module'
+        }
+        $this.Obsolete = $Job.ysnObsolete
+        $this.MasterJobGUID = $Job.MasterJobGUID
+        if ($Job.CurrentTaskGUID -isnot [System.DBNull])
+        {
+            $this.CurrentTaskGUID = $Job.CurrentTaskGUID
+        }
+        $this.AgentGUID = $Job.AgentGUID
+        $this.JobGUID = $Job.JobGUID
+    }
+
+    [JobTask[]] GetTasks ()
+    {
+        [xml]$Xml = [System.Text.Encoding]::Unicode.GetString($this.Tasks)
+    
+        return $Xml.SelectNodes("*/task").ForEach({
+            If ($_.ProjectInfo)
+            {
+                $ProjectName = $_.ProjectInfo.Name
+            }
+            else
+            {
+                $ProjectName = ''
+            }
+            if ($_.ModuleInfo)
+            {
+                $ModuleName = $_.ModuleInfo.Name
+            }
+            elseif ($_.Properties.enabled -eq 'yes')
+            {
+                [JobTask]::New($_, $ModuleName, $ProjectName)
+            }
+        })
+    }
+}
+
+# RESAM Job class
+class RESAMMasterJob
+{
+    #Properties
+    [string]     $Description
+    [bool]       $Enabled
+    [JobInvoker] $JobInvoker
+    [string]     $JobInvokerInfo
+    [string]     $ScheduleDate
+    [DateTime]   $StartDate
+    [DateTime]   $StopDate
+    [JobStatus]  $Status
+    [string]     $Who
+    [string]     $ModuleName
+    [array]      $Modules
+    [bool]       $IsTeam
+    [bool]       $IsRunBookJob
+    [bool]       $IsProject
+    [bool]       $IsRunBook
+    [bool]       $Now
+    [bool]       $WOL
+    [bool]       $Obsolete
+    [bool]       $LocalTime
+    [bool]       $Recurring
+    [string]     $RecurringSchedule
+    [int]        $Flags
+    [int]        $TimeOut
+    #[array]    $OrgTasks
+
+    hidden [byte[]] $Tasks
+    hidden [guid]   $MasterJobGUID
+    hidden [guid]   $ModuleGUID
+    hidden [guid[]] $WhoGUID
+    hidden [guid]   $RunBookJobGUID
+    hidden [guid]   $UpdateGUID
+    hidden [guid]   $JobInvokerGUID
+    hidden [guid]   $RecurringJobGUID
+
+    # Constructor
+    RESAMMasterJob ([System.Data.DataRow]$MasterJob)
+    {
+        $this.StartDate = $MasterJob.dtmStartDateTime.ToLocalTime()
+        $this.Who = $MasterJob.strWho
+        $this.StopDate = $MasterJob.dtmStopDateTime.ToLocalTime()
+        $this.Status = $MasterJob.lngStatus
+        $this.Description = $MasterJob.strDescription
+        $this.Enabled = $MasterJob.ysnEnabled
+        $this.ScheduleDate = $MasterJob.strScheduleDateTime
+        $this.LocalTime = $MasterJob.ysnLocalTime
+        $this.Now = $MasterJob.ysnNow
+        $this.Recurring = $MasterJob.ysnRecurring
+        If ($MasterJob.RecurringJobGUID -isnot [System.DBNull])
+        {
+            $this.RecurringJobGUID = $MasterJob.RecurringJobGUID
+        }
+        If ($MasterJob.imgRecurringSchedule -isnot [System.DBNull])
+        {
+            $this.RecurringSchedule = ([xml][System.Text.Encoding]::Unicode.GetString($MasterJob.imgRecurringSchedule)).Schedule
+        }
+        If ($MasterJob.imgWho -isnot [System.DBNull])
+        {
+             $this.WhoGUID = [System.Text.Encoding]::Unicode.GetString($MasterJob.imgWho).Split(';')
+        }
+        $this.WOL = $MasterJob.ysnWOL
+        $this.IsTeam = $MasterJob.ysnIsTeam
+        $this.ModuleGUID = $MasterJob.ModuleGUID
+        $this.ModuleName = $MasterJob.strModuleName
+        $this.IsProject = $MasterJob.ysnIsProject
+        $this.Tasks = $MasterJob.imgTasks
+        $this.Obsolete = $MasterJob.ysnObsolete
+        $this.MasterJobGUID = $MasterJob.MasterJobGUID
+        if ($MasterJob.UpdateGUID -isnot [System.DBNull])
+        {
+            $this.UpdateGUID = $MasterJob.UpdateGUID
+        }
+        if ($MasterJob.JobInvokerGUID -isnot [System.DBNull])
+        {
+            $this.JobInvokerGUID = $MasterJob.JobInvokerGUID
+        }
+        if ($MasterJob.RunBookJobGUID -isnot [System.DBNull])
+        {
+            $this.RunBookJobGUID = $MasterJob.RunBookJobGUID
+        }
+        $this.JobInvokerInfo = $MasterJob.strJobInvokerInfo
+        $this.JobInvoker = $MasterJob.lngJobInvoker
+        $this.IsRunBook = $MasterJob.ysnIsRunBook
+        $this.IsRunBookJob = $MasterJob.ysnIsRunBookJob
+        $this.Flags = $MasterJob.lngFlags
+        $this.TimeOut = $MasterJob.lngTimeout
+    }
+    
+    [MasterJobTask[]] GetTasks ()
+    {
+        [xml]$Xml = [System.Text.Encoding]::Unicode.GetString($this.Tasks)
+        If ($this.IsProject)
+        {
+            return $Xml.SelectNodes("*/*[@projectinfo='yes']")
+        }
+        elseif ($this.IsRunbook)
+        {
+            return $Xml.SelectNodes("*/*[properties/enabled='yes']")
+        }
+        else
+        {
+            return $null
+        }
+    }
+}
+
+# Task of masterjob
+class MasterJobTask
+{
+   # Properties
+   [string]    $Name
+   [string]    $Type
+   [array]     $Properties
+   [JobStatus] $Status
+
+   hidden [guid] $GUID
+
+   # Constructor
+   MasterJobTask ([System.Xml.XmlElement] $Task)
+   {
+       $this.Name = $Task.Properties.Name
+       $this.Type = $Task.Properties.What.Type
+       $this.Properties = $Task.properties
+       $this.Status = $Task.Status
+   }
+}
+
+class JobTask
+{
+   # Properties
+   [string]    $Project
+   [string]    $Module
+   [string]    $Description
+   [string]    $Comments
+   [string]    $Type
+   [array]     $Parameters
+   [array]     $Properties
+   [JobStatus] $Status
+
+   hidden [guid] $GUID
+
+   # Constructor
+   JobTask ([System.Xml.XmlElement]$Task, [string]$Module, [string]$Project)
+   {
+       $this.Comments = $Task.properties.comments
+       $this.Description = $Task.properties.description
+       $this.Type = $Task.properties.type
+       $this.Module = $Module
+       $this.Project = $Project
+       $this.Status = $Task.Status
+   }
+}
+
+Enum JobStatus
+{
+    OnHold = -1
+    Scheduled = 0
+    Active = 1
+    Aborting =  2
+    Aborted = 3
+    Completed = 4
+    Failed = 5
+    FailedHalted = 6
+    Cancelled = 7
+    CompletedWithErrors = 8
+    Skipped = 9
+}
+
+Enum JobInvoker
+{
+    User = 1
+    RecurringSchedule = 2
+    RESWorkspaceManager = 5
+    NewAgent = 7
+    Boot = 8
+    Runbook = 9
+}
+#endregion Classes
