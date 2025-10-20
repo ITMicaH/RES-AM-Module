@@ -20,7 +20,7 @@
               <PropertyName>OSName</PropertyName>
             </ListItem>
             <ListItem>
-              <PropertyName>OSServicePack</PropertyName>
+              <PropertyName>OSWindowsVersion</PropertyName>
             </ListItem>
 			<ListItem>
 			  <Label>FreeSpace(GB)</Label>
