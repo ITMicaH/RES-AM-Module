@@ -86,7 +86,8 @@ FunctionsToExport = @(
     'Get-RESAMJob'
     'Get-RESAMQueryResult'
     'Get-RESAMLog'
-    'New-ResAMJob'
+    'New-RESAMJob'
+	'Get-RESAMJobResult'
 )
 
 # Cmdlets to export from this module
