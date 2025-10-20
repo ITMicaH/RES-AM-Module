@@ -2048,7 +2048,7 @@ function New-RESAMJob
             $Description = $Task.Name
         }
         Write-Verbose "Getting input parameter object for '$Task'."
-        $InputParameters = Get-RESAMInputParameter -Dispatcher $Dispatcher -Credential $Credential -What $Task -Raw
+        $InputParameters = Get-RESAMInputParameter -Dispatcher $Dispatcher -Credential $Credential -What $Task -Raw -ErrorAction SilentlyContinue
 
         If ($InputParameters)
         {
@@ -2216,6 +2216,81 @@ function New-RESAMJob
 	}
 }
 
+function Get-RESAMJobResult
+{
+    [CmdletBinding()]
+    Param(
+        #MasterJob GUID
+        [Parameter(mandatory,
+                   ValueFromPipelineByPropertyName)]
+        [Alias('MasterJobGUID','JobGUID')]
+		[Guid]
+        $JobID,
+
+        #Web API credential
+        [Parameter(mandatory)]
+        [ValidateNotNull()]
+        [pscredential]
+        [System.Management.Automation.CredentialAttribute()]
+        $Credential,
+
+        #Dispatcher name
+        [object]
+        $Dispatcher,
+
+        #Include an overview of the job
+        [Switch]
+        $IncludeOverview,
+
+        #Include detailed information
+		[Switch]
+        $IncludeDetailed
+    )
+
+    Begin
+    {
+        If ($PSBoundParameters.Dispatcher)
+        {
+            $Dispatcher = Get-RESAMDispatcher -Name $Dispatcher -Full -ErrorAction SilentlyContinue
+            If ($Dispatcher.Properties.properties.dispatcherwebapi.state -eq 'ENABLED')
+            {
+                Write-Verbose "Dispatcher $($Dispatcher.Name) has an active webapi."
+            }
+            else
+            {
+                Write-Error "Dispatcher $($Dispatcher.Name) has no active webapi" -Category NotEnabled -TargetObject $Dispatcher.Name -ErrorAction Stop
+            }
+        }
+        else
+        {
+            $Dispatcher = Get-RESAMDispatcher -Full -Status Online | where {$_.Properties.properties.dispatcherwebapi.state -eq 'ENABLED'} | select -First 1
+            If ($Dispatcher)
+            {
+                Write-Verbose "Using dispatcher $($Dispatcher.Name)"
+            }
+            else
+            {
+                Write-Error "Unable to find a dispatcher with an active webapi." -Category ObjectNotFound -ErrorAction Stop
+            }
+        }
+    }
+    Process
+    {
+        $EndPoint = "Dispatcher/SchedulingService/jobs"
+		$DetailLevel = "overview=$IncludeOverview&detailed=$IncludeDetailed"
+
+		$uri = "http://$($Dispatcher.Name)/$EndPoint/$JobID/results?$DetailLevel"
+        $pREST = @{
+			Uri = $Uri
+			Method = "GET"
+            Credential = $Credential
+		}
+		$result = Invoke-RESAMRestMethod @pREST
+        $xmlResult = [Xml]([System.Text.Encoding]::Unicode.GetString($result.Xml))
+        $xmlResult.masterjobresults.masterjobresult
+    }
+}
+
 #region Classes
 
 # RESAM Job class
@@ -2248,17 +2323,26 @@ class RESAMJob
         $this.CurrentActivity = $Job.strCurrentActivity
         $this.Order = $Job.lngOrder
         $this.Tasks = $Job.imgTasks
-        [xml]$Xml = [System.Text.Encoding]::Unicode.GetString($this.Tasks)
-        $FirstTask = $xml.selectsinglenode('*/task')
-        If ($FirstTask.projectinfo)
+
+        $TaskString = [System.Text.Encoding]::Unicode.GetString($this.Tasks)
+        If ($TaskString -ne 'empty')
         {
-            $this.Type = 'Project'
-            $this.Name = $FirstTask.projectinfo.name
+            [xml]$Xml = $TaskString
+            $FirstTask = $xml.selectsinglenode('*/task')
+            If ($FirstTask.projectinfo)
+            {
+                $this.Type = 'Project'
+                $this.Name = $FirstTask.projectinfo.name
+            }
+            else
+            {
+                $this.Type = 'Module'
+                $this.Name = $FirstTask.moduleinfo.name
+            }
         }
         else
         {
-            $this.Type = 'Module'
-            $this.Name = $FirstTask.moduleinfo.name
+            Write-Debug 'Task is empty'
         }
         $this.Obsolete = $Job.ysnObsolete
         $this.MasterJobGUID = $Job.MasterJobGUID
